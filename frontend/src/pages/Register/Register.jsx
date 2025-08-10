@@ -1,0 +1,62 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import InputField from '../../components/InputFields';
+import './Register.css';
+function Register() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post('http://localhost:8002/api/auth/register', {
+        name,
+        email,
+        password
+      });
+
+      console.log('Response:', response.data);
+      alert('✅ User registered successfully!');
+    } catch (error) {
+      console.error('Error:', error.response?.data || error.message);
+      alert('❌ Registration failed. Check console for details.');
+    }
+  };
+
+  return (
+    <div className="register-container">
+      <h2>Create an Account</h2>
+      <form onSubmit={handleSubmit}>
+        <label>Full Name:</label>
+        <InputField
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+
+        <label>Email:</label>
+        <InputField
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+
+        <label>Password:</label>
+        <InputField
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <button type="submit">Register</button>
+      </form>
+    </div>
+  );
+}
+
+export default Register;

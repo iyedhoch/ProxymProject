@@ -31,18 +31,21 @@ const LoginPage = () => {
 
   return (
     <div className="login-container">
-      <h2>Login</h2>
+      {/*<h2>Login</h2>*/}
       <form onSubmit={handleLogin}>
-        <label>Email:</label>
-        <InputField
+
+        <h2>Login</h2>
+        <input
+
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <label>Password:</label>
-        <InputField
+
+
+        <input
           type="password"
           placeholder="Password"
           value={password}
@@ -51,6 +54,7 @@ const LoginPage = () => {
         />
 
         <button type="submit">Login</button>
+        <button type="button">Register</button>
       </form>
       {message && <p className="message">{message}</p>}
     </div>

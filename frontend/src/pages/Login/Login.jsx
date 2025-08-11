@@ -33,6 +33,7 @@ const LoginPage = () => {
     <div className="login-container">
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
+        <label>Email:</label>
         <InputField
           type="email"
           placeholder="Email"
@@ -40,7 +41,7 @@ const LoginPage = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-
+        <label>Password:</label>
         <InputField
           type="password"
           placeholder="Password"

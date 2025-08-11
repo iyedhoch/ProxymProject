@@ -18,10 +18,10 @@ function Register() {
       });
 
       console.log('Response:', response.data);
-      alert('✅ User registered successfully!');
+      alert('User registered successfully!');
     } catch (error) {
       console.error('Error:', error.response?.data || error.message);
-      alert('❌ Registration failed. Check console for details.');
+      alert('Registration failed. Check console for details.');
     }
   };
 

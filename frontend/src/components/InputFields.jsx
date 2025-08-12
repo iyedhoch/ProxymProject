@@ -1,11 +1,12 @@
 import React from 'react';
 import './InputFields.css';
 
-function InputField({ label, type, value, onChange }) {
+function InputField({ /*label*/ placeholder, type, value, onChange }) {
   return (
-    <div style={{ marginBottom: '16px' }}>
-      <label>{label}:</label><br />
-      <input type={type} 
+    <div className='input-group' style={{ marginBottom: '16px' }}>
+      {/*<label>{label}:</label><br />*/}
+      <input className='input-field' type={type} 
+      placeholder={placeholder}
       value={value} 
       onChange={onChange} 
       required />

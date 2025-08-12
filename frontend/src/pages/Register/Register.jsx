@@ -27,27 +27,37 @@ function Register() {
 
   return (
     <div className="register-container">
-      <h2>Create an Account</h2>
+      
+      {/*<h2>Create an Account</h2>*/}
+
       <form onSubmit={handleSubmit}>
-        <label>Full Name:</label>
+        <h2>Create an Account</h2>
+
+        {/*<label>Full Name:</label>*/}
+        
         <InputField
+          placeholder='Full Name'
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
         />
 
-        <label>Email:</label>
+        {/*<label>Email:</label>*/}
+        
         <InputField
           type="email"
+          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
 
-        <label>Password:</label>
+        {/*<label>Password:</label>*/}
+        
         <InputField
           type="password"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required

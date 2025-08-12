@@ -35,8 +35,7 @@ const LoginPage = () => {
       <form onSubmit={handleLogin}>
 
         <h2>Login</h2>
-        <input
-
+        <InputField
           type="email"
           placeholder="Email"
           value={email}
@@ -45,7 +44,7 @@ const LoginPage = () => {
         />
 
 
-        <input
+        <InputField
           type="password"
           placeholder="Password"
           value={password}
@@ -55,8 +54,9 @@ const LoginPage = () => {
 
         <button type="submit">Login</button>
         <button type="button">Register</button>
+        {message && <p className="message">{message}</p>}
       </form>
-      {message && <p className="message">{message}</p>}
+      {/*message && <p className="message">{message}</p>*/}
     </div>
   );
 };

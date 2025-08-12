@@ -1,4 +1,4 @@
-package project.Service;
+package project.Service.Auth;
 
 import project.Dto.AuthResponse;
 import project.Dto.LoginRequest;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceiImpl implements AuthService{
+public class AuthServiceiImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;

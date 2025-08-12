@@ -1,4 +1,4 @@
-package project.Service;
+package project.Service.Auth;
 
 import project.Dto.AuthResponse;
 import project.Dto.LoginRequest;

@@ -3,7 +3,7 @@ package project.Controller;
 import project.Dto.AuthResponse;
 import project.Dto.LoginRequest;
 import project.Dto.RegisterRequest;
-import project.Service.AuthServiceiImpl;
+import project.Service.Auth.AuthServiceiImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

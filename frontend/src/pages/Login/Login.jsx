@@ -1,20 +1,26 @@
 import React, { useState } from "react";
 import "./Login.css";
-import InputField from "../../components/InputFields";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (!email || !password) {
+      setMessage("Please make sure to fill all the fields");
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:8002/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
@@ -31,32 +37,31 @@ const LoginPage = () => {
 
   return (
     <div className="login-container">
-      {/*<h2>Login</h2>*/}
       <form onSubmit={handleLogin}>
-
         <h2>Login</h2>
-        <input
 
+        {message && <p className="message">{message}</p>}
+
+        <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          required
         />
-
 
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          required
         />
 
         <button type="submit">Login</button>
-        <button type="button">Register</button>
+        <button
+          type="button"
+          onClick={() => navigate("/register")}
+        >Register</button>
       </form>
-      {message && <p className="message">{message}</p>}
     </div>
   );
 };

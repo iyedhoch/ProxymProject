@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
+import "../../components/InputFields"
+import InputField from "../../components/InputFields";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -40,16 +42,16 @@ const LoginPage = () => {
       <form onSubmit={handleLogin}>
         <h2>Login</h2>
 
-        {message && <p className="message">{message}</p>}
-
-        <input
+        <InputField
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <input
+
+
+        <InputField
           type="password"
           placeholder="Password"
           value={password}
@@ -57,11 +59,15 @@ const LoginPage = () => {
         />
 
         <button type="submit">Login</button>
-        <button
-          type="button"
-          onClick={() => navigate("/register")}
-        >Register</button>
+
+        <button 
+        type="button"
+        onClick={() => navigate("/register")}>
+        Register</button>
+        {message && <p className="message">{message}</p>}
       </form>
+      {/*message && <p className="message">{message}</p>*/}
+
     </div>
   );
 };

@@ -1,12 +1,15 @@
 .login-container {
   display: flex;
   height: 100vh;
+
+  width: 100%;
   justify-content: center;
   align-items: center;
   background-color: #1a186d;
 }
 
-form {
+
+.login-container form{
   background: #fff;
   padding: 2rem;
   border-radius: 10px;
@@ -17,6 +20,13 @@ form {
   gap: 1rem;
 }
 
+
+/*.login-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}*/
+
+
 h2 {
   text-align: center;
   font-family: Georgia, serif;
@@ -25,13 +35,25 @@ h2 {
   margin-bottom: 1rem;
 }
 
-input {
+
+/*.login-container input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}*/
+
+/*.login-container input {
+>>>>>>> 148a51900363ef2ee3876e7843a3c3d8664c25ef
   padding: 0.75rem;
   border: 1px solid #ccc;
   font-family: Georgia, serif;
   border-radius: 5px;
   font-size: 1rem;
-}
+}*/
+
+
 
 button {
   padding: 0.75rem;

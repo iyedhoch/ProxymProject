@@ -1,0 +1,38 @@
+/* src/styles/UploadPDF.css */
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.drop-zone {
+  border: 2px dashed #888;
+  padding: 40px;
+  width: 300px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.drop-zone p {
+  margin: 0;
+}
+
+.drop-zone input {
+  display: none;
+}
+
+button {
+  background-color: #4cafef;
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #379adb;
+}

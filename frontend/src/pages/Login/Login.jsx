@@ -38,7 +38,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container1">
       <form onSubmit={handleLogin}>
         <h2>Login</h2>
 
@@ -58,7 +58,7 @@ const LoginPage = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button type="submit">Login</button>
+        <button type="submit" onClick={() => navigate("/upload-pdf")}>Login</button>
 
         <button 
         type="button"

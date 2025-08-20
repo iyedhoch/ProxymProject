@@ -1,4 +1,4 @@
-.login-container {
+.login-container1 {
   display: flex;
   height: 100vh;
 
@@ -9,7 +9,7 @@
 }
 
 
-.login-container form{
+.login-container1 form{
   background: #fff;
   padding: 2rem;
   border-radius: 10px;
@@ -27,7 +27,7 @@
 }*/
 
 
-h2 {
+.login-container1 h2 {
   text-align: center;
   font-family: Georgia, serif;
   font-size: 2rem;
@@ -36,7 +36,7 @@ h2 {
 }
 
 
-/*.login-container input {
+/*.login-container1 input {
   width: 100%;
   padding: 10px;
   margin: 8px 0;
@@ -55,7 +55,7 @@ h2 {
 
 
 
-button {
+.login-container1 button {
   padding: 0.75rem;
   background: #1a186d;
   color: #fff;
@@ -67,7 +67,7 @@ button {
   font-family: Georgia, serif;
 }
 
-button:hover {
+.login-container1 button:hover {
   background: #2724a3;
   transform: translateY(-2px);
 }

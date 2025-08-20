@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import InputField from '../../components/InputFields';
+import { useNavigate } from "react-router-dom";
 import './Register.css';
 function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +29,7 @@ function Register() {
   };
 
   return (
-    <div className="register-container">
+    <div className="register-container1">
       
       {/*<h2>Create an Account</h2>*/}
 
@@ -64,6 +67,10 @@ function Register() {
         />
 
         <button type="submit">Register</button>
+        <button 
+        type="button"
+        onClick={() => navigate("/login")}>
+        login</button>
       </form>
     </div>
   );

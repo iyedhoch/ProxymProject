@@ -1,38 +1,162 @@
 /* src/styles/UploadPDF.css */
+
 .upload-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  justify-content: center; /* center vertically */
+  padding: 40px;
+  background-color: #f5f7fa;
+  min-height: 100vh; /* full screen height */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
 }
 
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.input-group label {
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.input-group input {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  outline: none;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-group input:focus {
+  border-color: #4cafef;
+  box-shadow: 0 0 8px rgba(76, 175, 239, 0.3);
+}
+
+/* Drag & Drop Zone */
 .drop-zone {
-  border: 2px dashed #888;
-  padding: 40px;
-  width: 300px;
+  border: 3px dashed #4cafef;
+  background-color: #ffffff;
+  padding: 60px 25px;
+  width: 100%;
+  max-width: 500px;
   text-align: center;
   cursor: pointer;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  border-radius: 15px;
+  margin-bottom: 25px;
+  transition: all 0.3s ease;
+  position: relative;
+  font-size: 16px;
+  color: #333;
 }
 
-.drop-zone p {
-  margin: 0;
+.drop-zone.has-file {
+  border-color: #379adb;
+  background-color: #e8f0fe;
+}
+
+.drop-zone:hover {
+  background-color: #e0f0ff;
+  border-color: #379adb;
+}
+
+.drop-zone p.file-name {
+  font-weight: bold;
+  color: #4cafef;
+  margin-top: 10px;
+  word-break: break-word;
 }
 
 .drop-zone input {
   display: none;
 }
 
+/* Button */
 button {
   background-color: #4cafef;
   border: none;
   color: white;
-  padding: 10px 15px;
-  border-radius: 4px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 10px;
 }
 
 button:hover {
   background-color: #379adb;
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  background-color: #a0c4ff;
+  cursor: not-allowed;
+}
+
+/* Uploaded Files Section */
+.uploaded-files {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 40px;
+}
+
+.uploaded-files h2 {
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+.files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.file-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.file-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0px 8px 20px rgba(0,0,0,0.1);
+}
+
+.file-card p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.file-card p.file-name {
+  font-weight: bold;
+  color: #4cafef;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .drop-zone {
+    padding: 50px 15px;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .files-grid {
+    grid-template-columns: 1fr;
+  }
 }

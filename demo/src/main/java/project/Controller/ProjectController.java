@@ -4,7 +4,6 @@ import org.springframework.web.bind.annotation.*;
 import project.Service.FileStorage.FileStorageService;
 import project.Service.ProjectRecommendation.ProjectRecommendationService;
 
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -22,17 +21,14 @@ public class ProjectController {
     }
 
     @GetMapping("/recommendation")
-    public String getProjectRecommendation(
-            @RequestParam String filename
-    ) {
+    public String getProjectRecommendation(@RequestParam String filename) {
         try {
             Path cvPath = Paths.get("uploads").resolve(filename).toAbsolutePath();
-            String prompt = "Based on this CV, recommend a software project.";
-            return recommendationService.generateRecommendation(cvPath.toString(), prompt);
+            // Returns plain text directly
+            return recommendationService.recommendProjects(cvPath.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error generating recommendation: " + e.getMessage();
+            return "Error: Failed to generate projects: " + e.getMessage();
         }
     }
 }
-

@@ -17,6 +17,6 @@ public class OllamaServiceImpl implements OllamaService {
         return chatClient.prompt()
                 .user(prompt)
                 .call()
-                .content();
+                .content(); // returns plain text
     }
 }

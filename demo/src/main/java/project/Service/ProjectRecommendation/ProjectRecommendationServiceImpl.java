@@ -19,12 +19,22 @@ public class ProjectRecommendationServiceImpl implements ProjectRecommendationSe
     }
 
     @Override
-    public String generateRecommendation(String cvFilePath, String prompt) {
+    public String recommendProjects(String cvFilePath) {
+        // Extract text from the CV PDF
         String cvText = extractTextFromPDF(cvFilePath);
 
-        String fullPrompt = prompt + "\n\nCV CONTENT:\n" + cvText;
+        // Build the prompt for AI
+        String prompt = """
+                Based on this CV,
+                recommend exactly 3 software project ideas.
+                Each in one line, in this exact format with no introduction:
+                1. Project Name - One short line functionality
+                2. Project Name - One short line functionality
+                3. Project Name - One short line functionality
+                """;
 
-        return ollamaService.askOllama(fullPrompt);
+        // Return plain AI response as string
+        return ollamaService.askOllama(prompt + "\n\nCV CONTENT:\n" + cvText);
     }
 
     private String extractTextFromPDF(String filePath) {
@@ -37,5 +47,3 @@ public class ProjectRecommendationServiceImpl implements ProjectRecommendationSe
         }
     }
 }
-
-

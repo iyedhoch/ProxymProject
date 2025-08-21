@@ -7,6 +7,7 @@ import ProjectSelection from './pages/ProjectSelection/ProjectSelection'
 import Test from './pages/test/Test';
 import LoginPageClean from './pages/test2_Login/LoginPageClean';
 import RegisterPageClean from './pages/test2_register/RegisterPageClean';
+import Result from './pages/Result/Result'
 
 function App() {
   return (
@@ -19,7 +20,7 @@ function App() {
         <Route path="/test" element={<Test />} />
         <Route path="/loog" element={<LoginPageClean/>}/>
         <Route path="/test2_register" element={<RegisterPageClean/>}/>
-
+        <Route path="/result" element={<Result/>}/>
       </Routes>
     </Router>
   );

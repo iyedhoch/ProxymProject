@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface ProjectRecommendationService {
 
-    String recommendProjects(String cvFilePath);
+    List<ProjectIdea> recommendProjects(String cvFilePath);
 }

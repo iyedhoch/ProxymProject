@@ -21,9 +21,15 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/upload/pdf","/api/ai/**","/api/project/**","/api/project/plan/**","/api/project/plan/generate").permitAll()
+                        .requestMatchers( "/api/auth/**",
+                                "/api/upload/pdf",
+                                "/api/ai/**",
+                                "/api/project/**",
+                                "/api/project/plan/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
                 .formLogin(Customizer.withDefaults());
 
         return http.build();

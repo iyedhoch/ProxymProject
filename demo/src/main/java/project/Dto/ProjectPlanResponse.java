@@ -1,33 +1,17 @@
 package project.Dto;
 
-import project.Dto.ProjectPlanResponseDetails.ProjectOverview;
-import project.Dto.ProjectPlanResponseDetails.WeekPlan;
+import lombok.Data;
+import project.Dto.ProjectPlanResponseComponents.ProjectOverview;
+import project.Dto.ProjectPlanResponseComponents.WeekPlan;
+import project.Dto.ProjectPlanResponseComponents.SuccessSection;
+import project.Dto.ProjectPlanResponseComponents.NextStepsSection;
 
 import java.util.List;
 
+@Data
 public class ProjectPlanResponse {
     private ProjectOverview projectOverview;
     private List<WeekPlan> timeline;
-    private List<String> additionalRecommendations;
-
-    // Getters & Setters
-    public ProjectOverview getProjectOverview() {
-        return projectOverview;
-    }
-    public void setProjectOverview(ProjectOverview projectOverview) {
-        this.projectOverview = projectOverview;
-    }
-    public List<WeekPlan> getTimeline() {
-        return timeline;
-    }
-    public void setTimeline(List<WeekPlan> timeline) {
-        this.timeline = timeline;
-    }
-    public List<String> getAdditionalRecommendations() {
-        return additionalRecommendations;
-    }
-    public void setAdditionalRecommendations(List<String> additionalRecommendations) {
-        this.additionalRecommendations = additionalRecommendations;
-    }
+    private SuccessSection success;
+    private NextStepsSection nextSteps;
 }
-

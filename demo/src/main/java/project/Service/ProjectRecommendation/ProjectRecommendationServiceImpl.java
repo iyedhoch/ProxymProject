@@ -3,11 +3,14 @@ package project.Service.ProjectRecommendation;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
+import project.Dto.ProjectIdea;
 import project.Service.Ollama.OllamaService;
+import project.config.AiResponseParser;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 @Service
 public class ProjectRecommendationServiceImpl implements ProjectRecommendationService {
@@ -19,7 +22,7 @@ public class ProjectRecommendationServiceImpl implements ProjectRecommendationSe
     }
 
     @Override
-    public String recommendProjects(String cvFilePath) {
+    public List<ProjectIdea> recommendProjects(String cvFilePath) {
         // Extract text from the CV PDF
         String cvText = extractTextFromPDF(cvFilePath);
 
@@ -34,7 +37,8 @@ public class ProjectRecommendationServiceImpl implements ProjectRecommendationSe
                 """;
 
         // Return plain AI response as string
-        return ollamaService.askOllama(prompt + "\n\nCV CONTENT:\n" + cvText);
+        String Response = ollamaService.askOllama(prompt + "\n\nCV CONTENT:\n" + cvText);
+        return AiResponseParser.parseProjectIdeas(Response);
     }
 
     private String extractTextFromPDF(String filePath) {

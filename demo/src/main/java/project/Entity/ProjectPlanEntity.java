@@ -2,7 +2,6 @@ package project.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import project.Dto.ProjectPlanResponse;
 
 @Entity
 @Table(name = "project_plans")

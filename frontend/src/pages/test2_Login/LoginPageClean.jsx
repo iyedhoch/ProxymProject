@@ -1,61 +1,66 @@
-import { useState } from 'react';
-import './LoginPage.css';
+import { useState } from "react";
+import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 
-function LoginPageClean(/*{ onNavigateToRegister }*/) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+function LoginPageClean() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password, rememberMe });
     if (!email || !password) {
       setMessage("Please make sure to fill all the fields");
       return;
     }
+
     try {
+      setSubmitting(true);
+      setMessage("");
       const response = await fetch("http://localhost:8002/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe }),
       });
 
       if (response.ok) {
         const data = await response.json();
         setMessage("Login successful!");
+        navigate("/test"); // redirect on success
       } else {
         setMessage("Login failed!");
       }
     } catch (error) {
       console.error("Error:", error);
       setMessage("Server error");
+    } finally {
+      setSubmitting(false);
     }
-
   };
 
   return (
     <div className="login-page">
+      <div className="login-bg-pattern" />
+      <div className="login-orb login-orb-1" />
+      <div className="login-orb login-orb-2" />
+      <div className="login-orb login-orb-3" />
+
       <div className="login-container">
-        {/* Header Section */}
         <div className="header-section-login">
           <div className="logo-wrapper-login">
-            <img 
-              src="/logoproxym.png" 
-              alt="Logo" 
-              className="logo-login"
-            />
+            <div className="login-header-icon">
+              <img src="/logoproxym.png" alt="Logo" className="logo-login" />
+            </div>
           </div>
           <h1 className="page-title-login">Welcome Back</h1>
           <p className="page-subtitle-login">Sign in to access your account</p>
         </div>
 
-        {/* Login Form Container */}
         <div className="form-container-login">
           <form onSubmit={handleLogin} className="auth-form-login">
-            {/* Email Field */}
             <div className="form-group-login">
               <label htmlFor="email" className="form-label-login">
                 Email Address
@@ -63,7 +68,6 @@ function LoginPageClean(/*{ onNavigateToRegister }*/) {
               <input
                 type="email"
                 id="email"
-                name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
@@ -72,7 +76,6 @@ function LoginPageClean(/*{ onNavigateToRegister }*/) {
               />
             </div>
 
-            {/* Password Field */}
             <div className="form-group-login">
               <label htmlFor="password" className="form-label-login">
                 Password
@@ -80,7 +83,6 @@ function LoginPageClean(/*{ onNavigateToRegister }*/) {
               <input
                 type="password"
                 id="password"
-                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
@@ -89,13 +91,12 @@ function LoginPageClean(/*{ onNavigateToRegister }*/) {
               />
             </div>
 
-            {/* Remember Me & Forgot Password */}
+            {/* Options Row */}
             <div className="form-options-login">
               <div className="checkbox-group-login">
                 <input
                   type="checkbox"
                   id="remember"
-                  name="remember"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="checkbox-login"
@@ -107,24 +108,41 @@ function LoginPageClean(/*{ onNavigateToRegister }*/) {
               <button
                 type="button"
                 className="forgot-link-login"
-                onClick={() => console.log('Forgot password clicked')}
+                onClick={() => console.log("Forgot password clicked")}
               >
                 Forgot password?
               </button>
             </div>
 
-            {/* Login Button */}
-            <button type="submit" className="btn-login btn-primary" onClick={()=>navigate("/test")}>
-              Sign In
+            {message && (
+              <div
+                className={`login-message ${
+                  message.toLowerCase().includes("success")
+                    ? "login-message-success"
+                    : message.toLowerCase().includes("error")
+                    ? "login-message-error"
+                    : "login-message-info"
+                }`}
+              >
+                {message}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="btn-login btn-primary-login"
+              disabled={submitting}
+              onClick={() => navigate("/test")}
+            >
+              {submitting ? "Signing In..." : "Sign In"}
             </button>
 
-            {/* Register Link */}
             <div className="form-footer-login">
               <p className="footer-text-login">
-                Don't have an account?{' '}
+                Don't have an account?{" "}
                 <button
                   type="button"
-                  onClick={()=>navigate("/test2_register")}
+                  onClick={() => navigate("/test2_register")}
                   className="auth-link-login"
                 >
                   Create account
@@ -134,12 +152,12 @@ function LoginPageClean(/*{ onNavigateToRegister }*/) {
           </form>
         </div>
 
-        {/* Footer */}
         <div className="page-footer-login">
           <p>Need assistance? Contact support team at support@portal.com</p>
         </div>
       </div>
     </div>
   );
-};
+}
+
 export default LoginPageClean;

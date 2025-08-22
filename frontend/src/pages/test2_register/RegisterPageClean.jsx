@@ -1,65 +1,71 @@
-import { useState } from 'react';
-import './RegisterPage.css';
+import { useState } from "react";
+import "./RegisterPage.css";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
+import axios from "axios";
 
-
-function RegisterPageClean(/*onNavigateToLogin*/ ) {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+function RegisterPageClean() {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:8002/api/auth/register', {
-        fullName,
-        email,
-        password
-      });
-
-      console.log('Response:', response.data);
-      alert('User registered successfully!');
-    } catch (error) {
-      console.error('Error:', error.response?.data || error.message);
-      alert('Registration failed. Check console for details.');
-    }
-
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      setMessage("Passwords do not match.");
       return;
     }
     if (!agreeToTerms) {
-      alert('Please agree to the terms and conditions');
+      setMessage("Please agree to the terms and conditions.");
       return;
     }
-    console.log('Registration attempt:', { fullName, email, password });
+
+    try {
+      setSubmitting(true);
+      setMessage("");
+      await axios.post("http://localhost:8002/api/auth/register", {
+        fullName,
+        email,
+        password,
+      });
+      setMessage("User registered successfully!");
+      navigate("/loog");
+    } catch (error) {
+      console.error("Error:", error.response?.data || error.message);
+      setMessage("Registration failed. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="register-page">
+      {/* Background */}
+      <div className="register-bg-pattern" />
+      <div className="register-orb register-orb-1" />
+      <div className="register-orb register-orb-2" />
+      <div className="register-orb register-orb-3" />
+
       <div className="register-container">
-        {/* Header Section */}
+        {/* Header */}
         <div className="header-section-register">
           <div className="logo-wrapper-register">
-            <img 
-              src="/logoproxym.png" 
-              alt="Logo" 
-              className="logo-register"
-            />
+            <div className="register-header-icon">
+              <img src="/logoproxym.png" alt="Logo" className="logo-register" />
+            </div>
           </div>
           <h1 className="page-title-register">Create Account</h1>
           <p className="page-subtitle-register">Join us and start your journey</p>
         </div>
 
-        {/* Register Form Container */}
+        {/* Card */}
         <div className="form-container-register">
           <form onSubmit={handleSubmit} className="auth-form-register">
-            {/* Full Name Field */}
             <div className="form-group-register">
               <label htmlFor="fullName" className="form-label-register">
                 Full Name
@@ -67,7 +73,6 @@ function RegisterPageClean(/*onNavigateToLogin*/ ) {
               <input
                 type="text"
                 id="fullName"
-                name="fullName"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Enter your full name"
@@ -76,7 +81,6 @@ function RegisterPageClean(/*onNavigateToLogin*/ ) {
               />
             </div>
 
-            {/* Email Field */}
             <div className="form-group-register">
               <label htmlFor="email" className="form-label-register">
                 Email Address
@@ -84,7 +88,6 @@ function RegisterPageClean(/*onNavigateToLogin*/ ) {
               <input
                 type="email"
                 id="email"
-                name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
@@ -93,7 +96,6 @@ function RegisterPageClean(/*onNavigateToLogin*/ ) {
               />
             </div>
 
-            {/* Password Field */}
             <div className="form-group-register">
               <label htmlFor="password" className="form-label-register">
                 Password
@@ -101,17 +103,15 @@ function RegisterPageClean(/*onNavigateToLogin*/ ) {
               <input
                 type="password"
                 id="password"
-                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a password"
                 className="form-input-register"
                 required
-                minLength="6"
+                minLength={6}
               />
             </div>
 
-            {/* Confirm Password Field */}
             <div className="form-group-register">
               <label htmlFor="confirmPassword" className="form-label-register">
                 Confirm Password
@@ -119,65 +119,73 @@ function RegisterPageClean(/*onNavigateToLogin*/ ) {
               <input
                 type="password"
                 id="confirmPassword"
-                name="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
                 className="form-input-register"
                 required
-                minLength="6"
+                minLength={6}
               />
             </div>
 
-            {/* Terms Agreement */}
+            {/* Terms (perfect baseline alignment; links don't toggle checkbox) */}
             <div className="terms-group-register">
               <input
                 type="checkbox"
                 id="terms"
-                name="terms"
                 checked={agreeToTerms}
                 onChange={(e) => setAgreeToTerms(e.target.checked)}
                 className="checkbox-register"
                 required
               />
-
-              
-              <label htmlFor="terms" className="terms-label-register">
-                I agree to the{' '}
-              </label>
-              <button
-                  type="button"
-                  className="terms-link-register"
-                  //onClick={() => console.log('Terms clicked')}
-                  onClick={(e) => {e.stopPropagation();}}
-                >
-                Terms of Service
-                </button>
-                <label htmlFor="terms" className="terms-label-register">
-                  {' '}and{' '}
-                </label>
+              <span className="terms-text-register">
+                I agree to the{" "}
                 <button
                   type="button"
                   className="terms-link-register"
-                  onClick={() => console.log('Privacy policy clicked')}
+                  onClick={() => console.log("Terms of Service clicked")}
+                >
+                  Terms of Service
+                </button>{" "}
+                and{" "}
+                <button
+                  type="button"
+                  className="terms-link-register"
+                  onClick={() => console.log("Privacy Policy clicked")}
                 >
                   Privacy Policy
                 </button>
+              </span>
             </div>
 
-            {/* Register Button */}
-            <button 
-              type="submit" 
-              className="btn-register btn-secondary"
-              disabled={!agreeToTerms}
+            {/* Feedback message */}
+            {message && (
+              <div
+                className={`register-message ${
+                  message.toLowerCase().includes("success")
+                    ? "register-message-success"
+                    : message.toLowerCase().includes("failed") ||
+                      message.toLowerCase().includes("error")
+                    ? "register-message-error"
+                    : "register-message-info"
+                }`}
+              >
+                {message}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="btn-register btn-primary-register"
+              disabled={!agreeToTerms || submitting}
             >
-              Create Account
+              {submitting ? "Creating Account..." : "Create Account"}
             </button>
 
-            {/* Login Link */}
+            {/* Footer */}
             <div className="form-footer-register">
               <p className="footer-text-register">
-                Already have an account?{' '}
+                Already have an account?{" "}
                 <button
                   type="button"
                   onClick={() => navigate("/loog")}
@@ -190,7 +198,7 @@ function RegisterPageClean(/*onNavigateToLogin*/ ) {
           </form>
         </div>
 
-        {/* Footer */}
+        {/* Page footer */}
         <div className="page-footer-register">
           <p>Need assistance? Contact support team at support@portal.com</p>
         </div>
@@ -198,4 +206,5 @@ function RegisterPageClean(/*onNavigateToLogin*/ ) {
     </div>
   );
 }
+
 export default RegisterPageClean;

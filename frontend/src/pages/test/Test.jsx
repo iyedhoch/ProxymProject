@@ -8,8 +8,9 @@ export default function InternshipPortal() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [uploadedFileName, setUploadedFileName] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
-  const [message, setMessage] = useState(null); // { text, type }
+  const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -18,7 +19,7 @@ export default function InternshipPortal() {
     numberOfStudents: "",
     startDate: "",
     internshipDays: "",
-    internshipType: "", // free text
+    internshipType: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -29,7 +30,6 @@ export default function InternshipPortal() {
   const fileInputRef = useRef(null);
   const uploadAreaRef = useRef(null);
 
-  // Summary reflects Step 1 fields
   const summary = useMemo(
     () => ({
       students: form.numberOfStudents ? `${form.numberOfStudents} students` : "— students",
@@ -47,7 +47,6 @@ export default function InternshipPortal() {
   }, []);
 
   useEffect(() => {
-    // Prevent default drag behaviors on the whole page
     const preventDefaults = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -62,23 +61,11 @@ export default function InternshipPortal() {
     };
   }, []);
 
-  // Fetch suggestions when entering Step 3 (replace with your API)
+  // Fetch project recommendations when entering Step 3
   useEffect(() => {
-    if (currentStep !== 3) return;
-    setSuggestionsStatus("loading");
-    setSelectedTopic(null);
-
-    // Replace with your backend endpoint
-    fetch("/api/suggestions?limit=3")
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to fetch suggestions");
-        const data = await res.json();
-        if (!data?.topics || !Array.isArray(data.topics)) throw new Error("Invalid response format");
-        setSuggestions(data.topics.slice(0, 3));
-        setSuggestionsStatus("success");
-      })
-      .catch(() => setSuggestionsStatus("error"));
-  }, [currentStep]);
+    if (currentStep !== 3 || !uploadedFileName) return;
+    fetchProjectRecommendations();
+  }, [currentStep, uploadedFileName]);
 
   const showMessage = (text, type = "info") => {
     setMessage({ text, type });
@@ -90,6 +77,81 @@ export default function InternshipPortal() {
     const value = e.target.value;
     setForm((f) => ({ ...f, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  // FILE UPLOAD FUNCTION (REPLACED THE DUPLICATE)
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      showMessage("Please upload a PDF file only.", "error");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showMessage("File size must be less than 10MB.", "error");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const uploadResponse = await fetch('http://localhost:8002/api/upload/pdf', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!uploadResponse.ok) throw new Error('Upload failed');
+      
+      const result = await uploadResponse.text();
+      const fileName = result.split(': ')[1]; 
+      setUploadedFileName(fileName);
+      setUploadedFile(file);
+      setErrors({...errors, document: undefined});
+      showMessage("File uploaded successfully!", "success");
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      showMessage("File upload failed", "error");
+      setErrors({...errors, document: "File upload failed"});
+    }
+  };
+
+  // PROJECT RECOMMENDATION FUNCTION
+  const fetchProjectRecommendations = async () => {
+  console.log('fetchProjectRecommendations called');
+  if (!uploadedFileName) {
+    console.log('No filename available');
+    return false;
+  }
+
+  setSuggestionsStatus("loading");
+  
+  try {
+    console.log('Fetching from:', `http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileName)}`);
+    const response = await fetch(`http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileName)}`);
+    
+    if (!response.ok) {
+      console.log('Response not OK:', response.status);
+      throw new Error('Failed to get recommendations');
+    }
+    
+    const data = await response.json();
+    console.log('Received data:', data);
+    setSuggestions(data);
+    setSuggestionsStatus("success");
+    return true;
+    
+  } catch (error) {
+    console.error('Error fetching recommendations:', error);
+    setSuggestionsStatus("error");
+    return false;
+  }
+};
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    setUploadedFileName("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   // Validations
@@ -109,7 +171,7 @@ export default function InternshipPortal() {
 
   const validateStep2 = () => {
     const nextErrors = {};
-    if (!uploadedFile) nextErrors.document = "Please upload a PDF document";
+    if (!uploadedFileName) nextErrors.document = "Please upload a PDF document";
     setErrors(nextErrors);
     if (nextErrors.document) showMessage(nextErrors.document, "error");
     return Object.keys(nextErrors).length === 0;
@@ -130,10 +192,38 @@ export default function InternshipPortal() {
   };
 
   const goPrev = () => setCurrentStep((s) => Math.max(1, s - 1));
-  const goNext = () => {
-    if (!validateCurrent()) return;
-    setCurrentStep((s) => Math.min(TOTAL_STEPS, s + 1));
-  };
+  
+  // GO NEXT FUNCTION (REPLACED THE DUPLICATE)
+  const goNext = async () => {
+  console.log('goNext called, currentStep:', currentStep);
+  console.log('uploadedFileName:', uploadedFileName);
+  
+  if (currentStep === 2) {
+    if (!uploadedFileName) {
+      console.log('No file uploaded, showing error');
+      setErrors({...errors, document: "Please upload a CV file"});
+      return;
+    }
+    
+    console.log('Fetching recommendations...');
+    const success = await fetchProjectRecommendations();
+    
+    if (!success) {
+      console.log('Failed to fetch recommendations');
+      setErrors({...errors, topic: "Failed to load project suggestions"});
+      return;
+    }
+    console.log('Recommendations fetched successfully');
+  }
+  
+  if (!validateCurrent()) {
+    console.log('Validation failed');
+    return;
+  }
+  
+  console.log('Moving to next step');
+  setCurrentStep((s) => Math.min(TOTAL_STEPS, s + 1));
+};
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -154,7 +244,6 @@ export default function InternshipPortal() {
       resetForm();
     }, 1500);
 
-    // eslint-disable-next-line no-console
     console.log("Form submitted with data:", {
       ...form,
       file: uploadedFile ? uploadedFile.name : null,
@@ -170,6 +259,7 @@ export default function InternshipPortal() {
       internshipType: "",
     });
     setUploadedFile(null);
+    setUploadedFileName("");
     if (fileInputRef.current) fileInputRef.current.value = "";
     setCurrentStep(1);
     setErrors({});
@@ -186,24 +276,7 @@ export default function InternshipPortal() {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
-  const handleFileUpload = (file) => {
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      showMessage("Please upload a PDF file only.", "error");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      showMessage("File size must be less than 10MB.", "error");
-      return;
-    }
-    setUploadedFile(file);
-    if (errors.document) setErrors((e) => ({ ...e, document: undefined }));
-  };
-
-  const removeFile = () => {
-    setUploadedFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  // ... (keep your existing JSX return statement)
 
   return (
     <div className={`app-root step-${currentStep}`}>
@@ -441,7 +514,7 @@ export default function InternshipPortal() {
                       onChange={(e) => handleFileUpload(e.target.files?.[0])}
                     />
 
-                    {!uploadedFile && (
+                    {!uploadedFileName && (
                       <div className="upload-content" id="upload-content">
                         <div className="upload-icon-inner">
                           {/* DOWNLOAD ICON — now fully stroked and visible */}
@@ -467,7 +540,7 @@ export default function InternshipPortal() {
                       </div>
                     )}
 
-                    {uploadedFile && (
+                    {uploadedFileName && (
                       <div className="upload-success" id="upload-success">
                         <div className="success-content">
                           <div className="success-icon">
@@ -500,7 +573,7 @@ export default function InternshipPortal() {
                     )}
                   </div>
 
-                  {!uploadedFile && (
+                  {!uploadedFileName && (
                     <div className="upload-button-container" id="upload-button-container">
                       <button
                         type="button"
@@ -579,20 +652,24 @@ export default function InternshipPortal() {
 
                   {suggestionsStatus === "success" && suggestions.length > 0 && (
                     <div className="suggestion-grid">
-                      {suggestions.map((topic, idx) => (
+                      {suggestions.map((projectIdea, idx) => ( // ← Define projectIdea here
                         <label
-                          key={idx}
-                          className={`suggestion-card ${selectedTopic === topic ? "selected" : ""}`}
-                          onClick={() => setSelectedTopic(topic)}
+                           key={idx}
+                           className={`suggestion-card ${selectedTopic === projectIdea ? "selected" : ""}`}
+                          onClick={() => setSelectedTopic(projectIdea)}
                         >
                           <input
                             type="radio"
                             name="project-topic"
-                            checked={selectedTopic === topic}
-                            onChange={() => setSelectedTopic(topic)}
+                            checked={selectedTopic === projectIdea} // ← Use projectIdea here
+                            onChange={() => setSelectedTopic(projectIdea)} // ← And here
                             required
                           />
-                          <span className="suggestion-text">{topic}</span>
+                          <div className="suggestion-text">
+                            <strong>{projectIdea.name}</strong> {/* ← And here */}
+                            <br />
+                            <small>{projectIdea.description}</small> {/* ← And here */}
+                          </div>
                         </label>
                       ))}
                     </div>

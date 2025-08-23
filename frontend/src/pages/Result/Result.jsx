@@ -1,75 +1,92 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./Result.css";
 
 export default function Result() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
 
-  // Read ?id=... from the URL
-  const search = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  const reportId = search?.get("id") || "";
-
+  // Load plan from navigation state or sessionStorage
   useEffect(() => {
-    let ignore = false;
+    let mounted = true;
 
-    async function fetchReport() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const res = await fetch(
-          `http://localhost:8002/api/result`,
-          { headers: { Accept: "application/json" } }
-        );
-
-        if (!res.ok) throw new Error("Failed to load result");
-        const data = await res.json();
-        if (!ignore) setReport(data);
-      } catch (e) {
-        if (!ignore) setError(e.message || "Something went wrong");
-      } finally {
-        if (!ignore) setLoading(false);
+    const loadPlan = () => {
+      const navPlan = location?.state?.plan ?? location?.state?.report ?? null;
+      if (navPlan) {
+        try {
+          sessionStorage.setItem("projectPlan", JSON.stringify(navPlan));
+        } catch {}
+        if (mounted) {
+          setReport(navPlan);
+          setLoading(false);
+        }
+        return;
       }
-    }
 
-    fetchReport();
-    return () => {
-      ignore = true;
+      try {
+        const stored = sessionStorage.getItem("projectPlan");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (mounted) {
+            setReport(parsed);
+            setLoading(false);
+          }
+          return;
+        }
+      } catch {}
+
+      if (mounted) {
+        setError("No project plan found. Please go back and submit the form.");
+        setLoading(false);
+      }
     };
-  }, [reportId]);
 
-  // Map backend schema
-  const po = report?.projectOverview || {};
+    loadPlan();
+    return () => {
+      mounted = false;
+    };
+  }, [location]);
+
+  // Map backend schema → local vars
+  const po = report?.projectOverview ?? {};
   const weeks = Array.isArray(report?.timeline) ? report.timeline : [];
-  const successMethod = report?.success?.method || "—";
-  const successTalkingPoints = Array.isArray(report?.success?.talkingPoints) ? report.success.talkingPoints : [];
-  const nextActions = Array.isArray(report?.nextSteps?.actions) ? report.nextSteps.actions : [];
+  const successMethod = report?.success?.method ?? "—";
+  const successTalkingPoints = Array.isArray(report?.success?.talkingPoints)
+    ? report.success.talkingPoints
+    : [];
+  const nextActions = Array.isArray(report?.nextSteps?.actions)
+    ? report.nextSteps.actions
+    : [];
 
   // Stats
   const stats = useMemo(() => {
-    const totalWeeks = weeks.length ? `${weeks.length} week${weeks.length > 1 ? "s" : ""}` : "—";
+    const totalWeeks = weeks.length
+      ? `${weeks.length} week${weeks.length > 1 ? "s" : ""}`
+      : "—";
     return {
-      projectTitle: po.projectTitle || "—",
+      projectTitle: po.projectTitle ?? "—",
       totalWeeks,
       successMethod,
-      frontend: po.techStack?.frontend || "—",
-      backend: po.techStack?.backend || "—",
+      frontend: po.techStack?.frontend ?? "—",
+      backend: po.techStack?.backend ?? "—",
     };
   }, [po, weeks, successMethod]);
 
   // Helpers
   const splitHelpfulItem = (s) =>
-    String(s || "")
-      .replace(/^\s*-\s*/, "")
-      .trim();
+    String(s || "").replace(/^\s*-\s*/, "").trim();
 
   const parseWeeklyTasks = (summary) => {
-    const lines = String(summary || "").split("\n");
-    const tasks = lines
-      .filter((l) => l.trim().startsWith("- "))
+    if (!summary) return [];
+    return String(summary)
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.startsWith("- "))
       .map((l) => l.replace(/^\s*-\s*/, "").trim());
-    return tasks;
   };
 
   const firstSentence = (text) => {
@@ -82,7 +99,6 @@ export default function Result() {
   const downloadUrl = report?.downloadUrl || null;
 
   const handleExportPdf = () => {
-    // Client-side export; uses your existing @media print styles
     window.print();
   };
 

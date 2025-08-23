@@ -276,6 +276,19 @@ export default function InternshipPortal() {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
+  const fetchProjectPlan = async () => {
+  try {
+    const response = await fetch(`http://localhost:8002/api/project/plan/generate?projectName=${encodeURIComponent(selectedTopic)}&internshipDays=${encodeURIComponent(form.internshipDays)}&cvFilename=${encodeURIComponent(uploadedFileName)}`);
+    
+    if (!response.ok) throw new Error("Failed to fetch project plan");
+    
+    return await response.json();
+  } catch (err) {
+    console.error("Error fetching project plan:", err);
+    return null;
+  }
+};
+
   // ... (keep your existing JSX return statement)
 
   return (
@@ -710,14 +723,31 @@ export default function InternshipPortal() {
                 )}
 
                 {currentStep === TOTAL_STEPS && (
-                  <button type="submit" id="submit-btn" className="nav-btn nav-btn-success" disabled={submitting} onClick={()=>navigate('/result')}>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                      <polyline points="22,4 12,14.01 9,11.01" />
-                    </svg>
-                    {submitting ? "Submitting..." : "Submit"}
-                  </button>
-                )}
+                  <button
+                      type="button"
+                      id="submit-btn"
+                       className="nav-btn nav-btn-success" 
+                      disabled={submitting}
+                      onClick={async () => {
+                        setSubmitting(true);
+                        const plan = await fetchProjectPlan();
+                        setSubmitting(false);
+
+                        if (plan) {
+                          navigate("/result", { state: { plan } });
+                        } else {
+                          showMessage("Failed to generate project plan. Please try again.", "error");
+                        }
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22,4 12,14.01 9,11.01" />
+                      </svg>
+                      {submitting ? "Submitting..." : "Submit"}
+                    </button>
+                  )}
+
               </div>
             </form>
           </div>

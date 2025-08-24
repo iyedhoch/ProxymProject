@@ -1,10 +1,7 @@
 package project.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Data
@@ -13,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name = "users")
 public class User {
+    // REMOVE UserDetails implementation - let UserDetailsService handle it
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

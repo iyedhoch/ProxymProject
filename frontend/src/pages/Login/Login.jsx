@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
+import { handleAuthResponse } from "../../utils/api";
 
 function LoginPageClean() {
   const [email, setEmail] = useState("");
@@ -20,22 +21,20 @@ function LoginPageClean() {
     try {
       setSubmitting(true);
       setMessage("");
-      const response = await fetch("http://localhost:8002/api/auth/login", {
+      const response = await fetch("http://localhost:8002/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, rememberMe }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setMessage("Login successful!");
-        navigate("/test"); // redirect on success
-      } else {
-        setMessage("Login failed!");
-      }
+      // ✅ USE THE HELPER FUNCTION
+      await handleAuthResponse(response);
+      setMessage("Login successful!");
+      navigate("/test");
+      
     } catch (error) {
       console.error("Error:", error);
-      setMessage("Server error");
+      setMessage(error.message || "Login failed!");
     } finally {
       setSubmitting(false);
     }
@@ -132,7 +131,6 @@ function LoginPageClean() {
               type="submit"
               className="btn-login btn-primary-login"
               disabled={submitting}
-              
             >
               {submitting ? "Signing In..." : "Sign In"}
             </button>

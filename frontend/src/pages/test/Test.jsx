@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./Test.css";
 import { Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { authFetch,uploadFile } from "../../utils/api";
 
 export default function InternshipPortal() {
   const TOTAL_STEPS = 3;
@@ -81,40 +82,40 @@ export default function InternshipPortal() {
 
   // FILE UPLOAD FUNCTION (REPLACED THE DUPLICATE)
   const handleFileUpload = async (file) => {
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      showMessage("Please upload a PDF file only.", "error");
-      return;
+  console.log('🔄 Starting file upload:', file.name, file.size, file.type);
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    console.log('📦 FormData created');
+    
+    const uploadResponse = await uploadFile('http://localhost:8002/api/upload/pdf', formData);
+    console.log('📨 Response status:', uploadResponse.status);
+    
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      console.error('❌ Server error:', errorText);
+      throw new Error(errorText || `Upload failed: ${uploadResponse.status}`);
     }
-    if (file.size > 10 * 1024 * 1024) {
-      showMessage("File size must be less than 10MB.", "error");
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const uploadResponse = await fetch('http://localhost:8002/api/upload/pdf', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!uploadResponse.ok) throw new Error('Upload failed');
-      
-      const result = await uploadResponse.text();
-      const fileName = result.split(': ')[1]; 
-      setUploadedFileName(fileName);
-      setUploadedFile(file);
-      setErrors({...errors, document: undefined});
-      showMessage("File uploaded successfully!", "success");
-      
-    } catch (error) {
-      console.error('Upload error:', error);
-      showMessage("File upload failed", "error");
-      setErrors({...errors, document: "File upload failed"});
-    }
-  };
+    
+    const result = await uploadResponse.text();
+    console.log('✅ Upload success:', result);
+    
+    // Extract filename from response
+    const fileNameMatch = result.match(/File uploaded successfully: (.+)/);
+    const fileName = fileNameMatch ? fileNameMatch[1] : file.name;
+    
+    setUploadedFileName(fileName);
+    setUploadedFile(file);
+    setErrors({...errors, document: undefined});
+    showMessage("File uploaded successfully!", "success");
+    
+  } catch (error) {
+    console.error('Upload error:', error);
+    showMessage(error.message || "File upload failed", "error");
+    setErrors({...errors, document: error.message || "File upload failed"});
+  }
+};
 
   // PROJECT RECOMMENDATION FUNCTION
   const fetchProjectRecommendations = async () => {
@@ -127,8 +128,12 @@ export default function InternshipPortal() {
   setSuggestionsStatus("loading");
   
   try {
-    console.log('Fetching from:', `http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileName)}`);
-    const response = await fetch(`http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileName)}`);
+    console.log('Fetching recommendations...');
+    
+    // ✅ USE authFetch INSTEAD OF fetch
+    const response = await authFetch(
+      `http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileName)}`
+    );
     
     if (!response.ok) {
       console.log('Response not OK:', response.status);
@@ -144,6 +149,7 @@ export default function InternshipPortal() {
   } catch (error) {
     console.error('Error fetching recommendations:', error);
     setSuggestionsStatus("error");
+    showMessage(error.message || "Failed to load project suggestions", "error");
     return false;
   }
 };
@@ -278,13 +284,17 @@ export default function InternshipPortal() {
 
   const fetchProjectPlan = async () => {
   try {
-    const response = await fetch(`http://localhost:8002/api/project/plan/generate?projectName=${encodeURIComponent(selectedTopic)}&internshipDays=${encodeURIComponent(form.internshipDays)}&cvFilename=${encodeURIComponent(uploadedFileName)}`);
+    // ✅ USE authFetch INSTEAD OF fetch
+    const response = await authFetch(
+      `http://localhost:8002/api/project/plan/generate?projectName=${encodeURIComponent(selectedTopic)}&internshipDays=${encodeURIComponent(form.internshipDays)}&cvFilename=${encodeURIComponent(uploadedFileName)}`
+    );
     
     if (!response.ok) throw new Error("Failed to fetch project plan");
     
     return await response.json();
   } catch (err) {
     console.error("Error fetching project plan:", err);
+    showMessage(err.message || "Failed to generate project plan", "error");
     return null;
   }
 };

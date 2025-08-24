@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./Register.css";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { handleAuthResponse } from "../../utils/api";
 
 function RegisterPageClean() {
   const [fullName, setFullName] = useState("");
@@ -14,45 +14,65 @@ function RegisterPageClean() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (password !== confirmPassword) {
-      setMessage("Passwords do not match.");
-      return;
-    }
-    if (!agreeToTerms) {
-      setMessage("Please agree to the terms and conditions.");
-      return;
+  if (password !== confirmPassword) {
+    setMessage("Passwords do not match.");
+    return;
+  }
+  if (!agreeToTerms) {
+    setMessage("Please agree to the terms and conditions.");
+    return;
+  }
+
+  try {
+    setSubmitting(true);
+    setMessage("");
+    
+    console.log("Attempting to connect to backend...");
+    
+    const response = await fetch("http://localhost:8002/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: fullName, email, password }),
+    }).catch(networkError => {
+      console.error("Network error:", networkError);
+      throw new Error("Cannot connect to server. Please make sure the backend is running on port 8002.");
+    });
+
+    console.log("Response received, status:", response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Server error: ${response.status}`);
     }
 
-    try {
-      setSubmitting(true);
-      setMessage("");
-      await axios.post("http://localhost:8002/api/auth/register", {
-        fullName,
-        email,
-        password,
-      });
-      setMessage("User registered successfully!");
-      navigate("/login");
-    } catch (error) {
-      console.error("Error:", error.response?.data || error.message);
-      setMessage("Registration failed. Please try again.");
-    } finally {
-      setSubmitting(false);
+    const data = await response.json();
+    
+    if (!data.token) {
+      throw new Error("No token received from server");
     }
-  };
+
+    localStorage.setItem('authToken', data.token);
+    setMessage("Registration successful!");
+    navigate("/test");
+    
+  } catch (error) {
+    console.error("Registration error:", error);
+    setMessage(error.message || "Registration failed. Please try again.");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className="register-page">
-      {/* Background */}
       <div className="register-bg-pattern" />
       <div className="register-orb register-orb-1" />
       <div className="register-orb register-orb-2" />
       <div className="register-orb register-orb-3" />
 
       <div className="register-container">
-        {/* Header */}
         <div className="header-section-register">
           <div className="logo-wrapper-register">
             <div className="register-header-icon">
@@ -60,10 +80,9 @@ function RegisterPageClean() {
             </div>
           </div>
           <h1 className="page-title-register">Create Account</h1>
-          <p className="page-subtitle-register">Join us and start your journey</p>
+          <p className="page-subtitle-register">Join us to get started with your internship journey</p>
         </div>
 
-        {/* Card */}
         <div className="form-container-register">
           <form onSubmit={handleSubmit} className="auth-form-register">
             <div className="form-group-register">
@@ -108,7 +127,6 @@ function RegisterPageClean() {
                 placeholder="Create a password"
                 className="form-input-register"
                 required
-                minLength={6}
               />
             </div>
 
@@ -124,50 +142,30 @@ function RegisterPageClean() {
                 placeholder="Confirm your password"
                 className="form-input-register"
                 required
-                minLength={6}
               />
             </div>
 
-            {/* Terms (perfect baseline alignment; links don't toggle checkbox) */}
-            <div className="terms-group-register">
-              <input
-                type="checkbox"
-                id="terms"
-                checked={agreeToTerms}
-                onChange={(e) => setAgreeToTerms(e.target.checked)}
-                className="checkbox-register"
-                required
-              />
-              <span className="terms-text-register">
-                I agree to the{" "}
-                <button
-                  type="button"
-                  className="terms-link-register"
-                  onClick={() => console.log("Terms of Service clicked")}
-                >
-                  Terms of Service
-                </button>{" "}
-                and{" "}
-                <button
-                  type="button"
-                  className="terms-link-register"
-                  onClick={() => console.log("Privacy Policy clicked")}
-                >
-                  Privacy Policy
-                </button>
-              </span>
+            <div className="form-options-register">
+              <div className="checkbox-group-register">
+                <input
+                  type="checkbox"
+                  id="agreeToTerms"
+                  checked={agreeToTerms}
+                  onChange={(e) => setAgreeToTerms(e.target.checked)}
+                  className="checkbox-register"
+                />
+                <label htmlFor="agreeToTerms" className="checkbox-label-register">
+                  I agree to the Terms and Conditions
+                </label>
+              </div>
             </div>
 
-            {/* Feedback message */}
             {message && (
               <div
                 className={`register-message ${
                   message.toLowerCase().includes("success")
                     ? "register-message-success"
-                    : message.toLowerCase().includes("failed") ||
-                      message.toLowerCase().includes("error")
-                    ? "register-message-error"
-                    : "register-message-info"
+                    : "register-message-error"
                 }`}
               >
                 {message}
@@ -177,12 +175,11 @@ function RegisterPageClean() {
             <button
               type="submit"
               className="btn-register btn-primary-register"
-              disabled={!agreeToTerms || submitting}
+              disabled={submitting}
             >
               {submitting ? "Creating Account..." : "Create Account"}
             </button>
 
-            {/* Footer */}
             <div className="form-footer-register">
               <p className="footer-text-register">
                 Already have an account?{" "}
@@ -198,7 +195,6 @@ function RegisterPageClean() {
           </form>
         </div>
 
-        {/* Page footer */}
         <div className="page-footer-register">
           <p>Need assistance? Contact support team at support@portal.com</p>
         </div>

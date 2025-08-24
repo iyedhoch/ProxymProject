@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import "./Test.css";
+import "./Form.css";
 import { Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
-export default function InternshipPortal() {
+export default function Form() {
   const TOTAL_STEPS = 3;
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -734,7 +734,7 @@ export default function InternshipPortal() {
                         setSubmitting(false);
 
                         if (plan) {
-                          navigate("/result", { state: { plan } });
+                          navigate("/Report-Page", { state: { plan } });
                         } else {
                           showMessage("Failed to generate project plan. Please try again.", "error");
                         }

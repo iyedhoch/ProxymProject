@@ -29,7 +29,7 @@ function LoginPageClean() {
       if (response.ok) {
         const data = await response.json();
         setMessage("Login successful!");
-        navigate("/test"); // redirect on success
+        navigate("/Form-Page"); // redirect on success
       } else {
         setMessage("Login failed!");
       }

@@ -3,18 +3,18 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import ProjectSelection from './pages/ProjectSelection/ProjectSelection'
-import Test from './pages/test/Test';
-import Result from './pages/Result/Result'
+import Form from './pages/Form/Form';
+import Report from './pages/Report/Report'
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/ProjectSelection" element={<ProjectSelection />} />
-        <Route path="/test" element={<Test />} />
+        <Route path="/Form-Page" element={<Form/>} />
         <Route path="/login" element={<Login/>}/>
         <Route path="/register" element={<Register/>}/>
-        <Route path="/result" element={<Result/>}/>
+        <Route path="/Report-Page" element={<Report/>}/>
       </Routes>
     </Router>
   );

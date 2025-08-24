@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./Result.css";
+import "./Report.css";
 
-export default function Result() {
+export default function Report() {
   const location = useLocation();
   const navigate = useNavigate();
 

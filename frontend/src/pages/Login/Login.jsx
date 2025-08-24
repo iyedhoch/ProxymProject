@@ -27,11 +27,21 @@ function LoginPageClean() {
         body: JSON.stringify({ email, password, rememberMe }),
       });
 
+<<<<<<< HEAD
       // ✅ USE THE HELPER FUNCTION
       await handleAuthResponse(response);
       setMessage("Login successful!");
       navigate("/test");
       
+=======
+      if (response.ok) {
+        const data = await response.json();
+        setMessage("Login successful!");
+        navigate("/Form-Page"); // redirect on success
+      } else {
+        setMessage("Login failed!");
+      }
+>>>>>>> feed6377348f0c52828c1548a7e3264f231732da
     } catch (error) {
       console.error("Error:", error);
       setMessage(error.message || "Login failed!");

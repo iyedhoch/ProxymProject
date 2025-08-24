@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./Result.css";
+import "./Report.css";
 
-export default function Result() {
+export default function Report() {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -163,7 +163,7 @@ export default function Result() {
           {/* Content */}
           {!loading && !error && (
             <>
-              {/* Stats Grid (kept) */}
+              {/* Stats Grid */}
               <div className="result-stats-grid">
                 <div className="result-stat-box">
                   <span className="result-stat-label">Project Title</span>
@@ -280,41 +280,6 @@ export default function Result() {
                 </div>
               </section>
 
-              {/* Timeline Estimate */}
-              <section className="result-section">
-                <div className="result-section-head">
-                  <div className="result-step-icon result-step-icon-blue">
-                    {/* Calendar icon */}
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" />
-                      <line x1="8" y1="2" x2="8" y2="6" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="result-subheading">Timeline Estimate</h3>
-                    <p className="result-help-text">High-level weekly schedule</p>
-                  </div>
-                </div>
-
-                <div className="result-timeline">
-                  {weeks.length === 0 && <p className="result-paragraph">—</p>}
-                  {weeks.map((w, i) => (
-                    <div className="result-milestone" key={i}>
-                      <div className="result-milestone-dot" />
-                      <div className="result-milestone-body">
-                        <div className="result-milestone-top">
-                          <span className="result-milestone-name">{w.weekLabel || `Week ${i + 1}`}</span>
-                          <span className="result-status planned">planned</span>
-                        </div>
-                        <div className="result-milestone-date">{firstSentence(w.summary)}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
               {/* Scope & Deliverables */}
               <section className="result-section">
                 <div className="result-section-head">
@@ -411,7 +376,7 @@ export default function Result() {
                 </section>
               )}
 
-              {/* Actions: left (Start New) | right (Download if available, Export) */}
+              {/* Actions */}
               <div className="result-actions">
                 <div className="actions-left">
                   <a className="result-btn result-btn-success" href="/" title="Start a new application">

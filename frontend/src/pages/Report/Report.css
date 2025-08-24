@@ -226,26 +226,6 @@
 }
 .result-page .result-epic-title { margin: 0; font-size: 1rem; color: #111827; }
 
-/* ===== Timeline ===== */
-.result-page .result-timeline { position: relative; display: grid; gap: 14px; margin-left: 6px; }
-.result-page .result-milestone { display: grid; grid-template-columns: 18px 1fr; gap: 10px; }
-.result-page .result-milestone-dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  margin-top: 6px;
-  background: linear-gradient(135deg, var(--green-start), var(--green-end));
-}
-.result-page .result-milestone-body { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; }
-.result-page .result-milestone-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.result-page .result-milestone-name { font-weight: 600; color: #111827; }
-.result-page .result-milestone-date { margin-top: 4px; font-size: 0.9rem; color: var(--muted); }
-
-/* status badges */
-.result-page .result-status {
-  border-radius: 999px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700;
-  border: 1px solid transparent;
-}
-.result-page .result-status.planned { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
-
 /* ===== Scope & Deliverables ===== */
 .result-page .result-scope-grid {
   display: grid;
@@ -272,7 +252,7 @@
 .result-page .result-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* left group & right group */
+  justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
   border-top: 1px solid #e5e7eb;

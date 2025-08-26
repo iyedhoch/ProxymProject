@@ -5,6 +5,8 @@ import Register from './pages/Register/Register';
 import ProjectSelection from './pages/ProjectSelection/ProjectSelection'
 import Form from './pages/Form/Form';
 import Report from './pages/Report/Report'
+import ProjectDetails from './pages/ProjectDetails/ProjectDetails';
+import ProjectOverview from './pages/ProjectOverview/ProjectOverview';
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/login" element={<Login/>}/>
         <Route path="/register" element={<Register/>}/>
         <Route path="/Report-Page" element={<Report/>}/>
+        <Route path="/projects" element={<ProjectOverview/>}/>
+        <Route path="/projects/:id" element={<ProjectDetails/>}/>
       </Routes>
     </Router>
   );

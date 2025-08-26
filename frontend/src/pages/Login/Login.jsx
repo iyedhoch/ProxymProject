@@ -27,11 +27,14 @@ function LoginPageClean() {
         body: JSON.stringify({ email, password, rememberMe }),
       });
 
-      // ✅ USE THE HELPER FUNCTION
-      await handleAuthResponse(response);
-      setMessage("Login successful!");
-      navigate("/Form-Page");
-      
+      if (response.ok) {
+        const data = await response.json();
+        setMessage("Login successful!");
+        navigate("/Form-Page"); // redirect on success
+      } else {
+        setMessage("Login failed!");
+      }
+
     } catch (error) {
       console.error("Error:", error);
       setMessage(error.message || "Login failed!");

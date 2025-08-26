@@ -1,0 +1,293 @@
+/* THEME (scoped to .project-details) */
+.project-details {
+  --text: #374151;
+  --muted: #6b7280;
+
+  --bg1: #f8fafc;
+  --bg2: #e0f2fe;
+  --bg3: #e0e7ff;
+
+  --primary-start: #3b82f6;
+  --primary-end: #8b5cf6;
+  --green-start: #10b981;
+  --green-end: #06b6d4;
+  --purple-start: #8b5cf6;
+  --purple-end: #ec4899;
+
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-border: rgba(255, 255, 255, 0.35);
+
+  --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.12);
+}
+
+/* Layout + background to match other pages */
+.project-details {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 50%, var(--bg3) 100%);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  overflow-x: hidden;
+}
+
+.project-details .pd-bg-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.15) 1px, transparent 0);
+  background-size: 20px 20px;
+  opacity: 0.3;
+  z-index: 0;
+}
+.project-details .pd-floating {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  filter: blur(60px);
+  z-index: 0;
+  animation: pd-float 6s ease-in-out infinite;
+}
+.project-details .pd-f1 { top: 80px; left: 40px; width: 128px; height: 128px; background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); animation-delay: 0s; }
+.project-details .pd-f2 { top: 240px; right: 80px; width: 192px; height: 192px; background: linear-gradient(135deg, #ec4899, #ef4444); animation-delay: 2s; }
+.project-details .pd-f3 { bottom: 80px; left: 33.33%; width: 160px; height: 160px; background: linear-gradient(135deg, var(--green-start), var(--primary-start)); animation-delay: 4s; }
+@keyframes pd-float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-18px) rotate(180deg); } }
+
+/* Header (glass + gradient accent) */
+.project-details .details-header {
+  position: relative;
+  z-index: 1;
+  padding: 24px;
+}
+.project-details .details-header-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+}
+
+/* Back button (left) */
+.project-details .back-button {
+  color: #1f2937;
+  background: #ffffffcc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
+}
+.project-details .back-button:hover { transform: translateX(-2px); background: #fff; }
+.project-details .back-button-card { background: white; color: #374151; border-color: #e5e7eb; box-shadow: none; }
+
+/* Header content (layout kept) */
+.project-details .header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+.project-details .header-info { flex: 1; }
+
+/* Title with subtle gradient text */
+.project-details .project-title {
+  font-size: 2rem;
+  line-height: 2.4rem;
+  margin-bottom: 8px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #111827, #1e3a8a, #6b21a8);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* Type badge similar to chips on other pages */
+.project-details .type-badge {
+  display: inline-block;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #4338ca;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}
+
+/* Description below title */
+.project-details .project-description {
+  color: var(--muted);
+  max-width: 48rem;
+  line-height: 1.65;
+}
+
+/* Main Content */
+.project-details .details-main-content {
+  position: relative;
+  z-index: 1;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Cards (glassy) */
+.project-details .overview-card,
+.project-details .tasks-card,
+.project-details .team-members-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  padding: 16px;
+}
+
+/* Overview grid */
+.project-details .overview-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (min-width: 1024px) {
+  .project-details .overview-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Card header with icon */
+.project-details .card-header-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+.project-details .card-icon {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  color: white;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+}
+.project-details .card-icon svg { width: 22px; height: 22px; }
+
+/* Timeline rows */
+.project-details .timeline-details { display: grid; gap: 8px; }
+.project-details .timeline-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.92rem;
+}
+.project-details .timeline-label { color: var(--muted); }
+.project-details .timeline-value { color: #111827; font-weight: 600; }
+
+/* Team card */
+.project-details .team-details { display: grid; gap: 12px; }
+.project-details .team-supervisor { font-size: 0.875rem; color: var(--muted); }
+.project-details .team-supervisor-name { font-size: 0.95rem; font-weight: 700; color: #111827; }
+.project-details .team-trainees-label { font-size: 0.875rem; color: var(--muted); }
+.project-details .team-avatars { display: flex; gap: 8px; flex-wrap: wrap; }
+.project-details .team-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid #c7d2fe; background: #eef2ff;
+  display: grid; place-items: center;
+}
+.project-details .team-avatar-text { font-size: 0.75rem; font-weight: 800; color: #4338ca; }
+
+/* Divider */
+.project-details .separator { height: 1px; background: #e5e7eb; }
+
+/* HR card */
+.project-details .hr-details { display: grid; gap: 8px; }
+.project-details .hr-row { display: flex; align-items: center; justify-content: space-between; }
+.project-details .hr-label { font-size: 0.875rem; color: var(--muted); }
+.project-details .hr-value { font-size: 0.95rem; font-weight: 700; color: #111827; }
+.project-details .hr-mail { color: #2563eb; text-decoration: none; font-weight: 600; }
+
+/* Project description section (extra spacing below) */
+.project-details .description-card { margin-bottom: 16px; }
+.project-details .project-description-block { color: #1f2937; line-height: 1.7; }
+
+/* Extra spacing between description and task breakdown */
+@media (min-width: 640px) {
+  .project-details .description-card { margin-bottom: 22px; }
+}
+
+/* Tasks */
+.project-details .tasks-card { padding: 16px; }
+.project-details .tasks-list { display: grid; gap: 12px; }
+.project-details .task-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+}
+.project-details .task-header { display: flex; align-items: flex-start; justify-content: space-between; }
+.project-details .task-content { flex: 1; }
+.project-details .task-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.project-details .task-title { font-weight: 700; color: #111827; }
+.project-details .task-description { font-size: 0.95rem; line-height: 1.55rem; color: var(--muted); }
+.project-details .task-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.9rem; color: var(--muted); flex-wrap: wrap; gap: 10px; margin-top: 8px;
+}
+.project-details .task-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.project-details .task-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Team Members */
+.project-details .team-members-card { margin-top: 18px; padding: 16px; }
+.project-details .team-members-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 768px) {
+  .project-details .team-members-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .project-details .team-members-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.project-details .team-member-card {
+  border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; background: #fff;
+}
+.project-details .team-member-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.project-details .team-member-info h4 { font-weight: 700; margin: 0; }
+.project-details .team-member-role { font-size: 0.875rem; color: var(--muted); }
+.project-details .team-member-email { font-size: 0.9rem; color: var(--muted); margin-bottom: 10px; }
+.project-details .team-member-email a { color: #2563eb; text-decoration: none; }
+.project-details .team-member-tasks { font-size: 0.8rem; color: #6b7280; margin-bottom: 4px; }
+.project-details .team-member-task-count { font-size: 0.9rem; }
+
+/* Error State */
+.project-details .error-container {
+  min-height: 50vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.project-details .error-content {
+  text-align: center;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+}
+.project-details .error-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+  .project-details .project-title { font-size: 1.75rem; }
+}
+@media (max-width: 768px) {
+  .project-details .details-header { padding: 16px; }
+  .project-details .details-header-container { padding: 16px; border-radius: 20px; }
+  .project-details .details-main-content { padding: 16px; }
+  .project-details .header-content { flex-direction: column; gap: 12px; }
+}

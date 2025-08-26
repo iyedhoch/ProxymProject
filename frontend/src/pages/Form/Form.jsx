@@ -122,42 +122,52 @@ export default function Form() {
   };
 
   // RECOMMENDATIONS
-  const fetchProjectRecommendations = async () => {
-    if (!uploadedFileName) {
-      showMessage("Please upload a CV before fetching suggestions.", "error");
-      return false;
-    }
+  const [retryCount, setRetryCount] = useState(0);
+// RETRY handler
+const handleRetrySuggestions = async () => {
+  const nextRetry = retryCount + 1;
+  setRetryCount(nextRetry); // update state
+  setSuggestions([]); // clear current suggestions
+  setSelectedTopic(null); // reset selection
+  await fetchProjectRecommendations(nextRetry); // pass updated count explicitly
+};
 
-    setSuggestionsStatus("loading");
-    try {
-      const response = await authFetch(
-        `http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileName)}`
-      );
+// RECOMMENDATIONS fetch
+const fetchProjectRecommendations = async (retry = 0) => {
+  if (!uploadedFileName) {
+    showMessage("Please upload a CV before fetching suggestions.", "error");
+    return false;
+  }
 
-      if (!response.ok) throw new Error("Failed to get recommendations");
+  setSuggestionsStatus("loading");
+  try {
+    const response = await authFetch(
+      `http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(
+        uploadedFileName
+      )}&retry=${retry}&t=${Date.now()}` // prevent caching
+    );
 
-      const data = await response.json();
-      setSuggestions(Array.isArray(data) ? data : []);
-      setSuggestionsStatus("success");
-      return true;
-    } catch (error) {
-      setSuggestionsStatus("error");
-      showMessage(error.message || "Failed to load project suggestions", "error");
-      return false;
-    }
-  };
+    if (!response.ok) throw new Error("Failed to get recommendations");
 
-  // ✅ RETRY handler for Step 3
-  const handleRetrySuggestions = async () => {
-    setSuggestions([]);
-    await fetchProjectRecommendations();
-  };
+    const data = await response.json();
+    setSuggestions(Array.isArray(data) ? data : []);
+    setSuggestionsStatus("success");
+    return true;
+  } catch (error) {
+    setSuggestionsStatus("error");
+    showMessage(error.message || "Failed to load project suggestions", "error");
+    return false;
+  }
+};
 
-  const removeFile = () => {
-    setUploadedFile(null);
-    setUploadedFileName("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+
+
+const removeFile = () => {
+setUploadedFile(null);
+setUploadedFileName("");
+if (fileInputRef.current) fileInputRef.current.value = ""; 
+};
+
 
   // Validations
   const validateStep1 = () => {
@@ -654,6 +664,7 @@ export default function Form() {
                       onClick={handleRetrySuggestions}
                       disabled={suggestionsStatus === "loading"}
                       title="Retry generating suggestions"
+                      
                     >
                       {suggestionsStatus === "loading" ? "Retrying…" : "Retry"}
                     </button>

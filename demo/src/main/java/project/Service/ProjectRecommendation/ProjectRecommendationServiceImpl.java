@@ -22,22 +22,26 @@ public class ProjectRecommendationServiceImpl implements ProjectRecommendationSe
     }
 
     @Override
-    public List<ProjectIdea> recommendProjects(String cvFilePath) {
+    public List<ProjectIdea> recommendProjects(String cvFilePath, int retryCount) {
         // Extract text from the CV PDF
         String cvText = extractTextFromPDF(cvFilePath);
 
         // Build the prompt for AI
-        String prompt = """
-                Based on this CV,
+        String prompt = String.format("""
+                Based on this CV,and based on the retry attempt give diffrent responses so don't always give what first come to mind,
                 recommend exactly 3 software project ideas.
-                Each in one line, in this exact format with no introduction:
+                Each in one line, in this exact format with no deviation with no introduction:
                 1. Project Name - One short line functionality
                 2. Project Name - One short line functionality
                 3. Project Name - One short line functionality
-                """;
+                
+                Retry attempt: %d
+                Random token: %d
+                """, retryCount, (int)(Math.random() * 100000));
 
         // Return plain AI response as string
-        String Response = ollamaService.askOllama(prompt + "\n\nCV CONTENT:\n" + cvText);
+        String randomToken = "RetryToken-" + System.currentTimeMillis();
+        String Response = ollamaService.askOllama(prompt + "\n\nCV CONTENT:\n" + cvText + "\n" + randomToken);
         return AiResponseParser.parseProjectIdeas(Response);
     }
 

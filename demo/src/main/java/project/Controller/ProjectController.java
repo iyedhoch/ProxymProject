@@ -24,11 +24,12 @@ public class ProjectController {
     }
 
     @GetMapping("/recommendation")
-    public List<ProjectIdea> getProjectRecommendation(@RequestParam String filename) {
+    public List<ProjectIdea> getProjectRecommendation(@RequestParam String filename,
+                                                      @RequestParam(defaultValue = "0") int retry) {
         try {
             Path cvPath = Paths.get("uploads").resolve(filename).toAbsolutePath();
             // Call service to generate DTO list
-            return recommendationService.recommendProjects(cvPath.toString());
+            return recommendationService.recommendProjects(cvPath.toString(),retry);
         } catch (Exception e) {
             e.printStackTrace();
             // Return a fallback list with a single ProjectIdea containing the error

@@ -55,7 +55,7 @@ function RegisterPageClean() {
 
     localStorage.setItem('authToken', data.token);
     setMessage("Registration successful!");
-    navigate("/test");
+    navigate("/Form-Page");
     
   } catch (error) {
     console.error("Registration error:", error);

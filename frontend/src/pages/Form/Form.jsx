@@ -1,11 +1,25 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./Form.css";
-import { Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { authFetch,uploadFile } from "../../utils/api";
+import { authFetch, uploadFile } from "../../utils/api";
 
 export default function Form() {
   const TOTAL_STEPS = 3;
+
+  // ✅ internship types used by the new <select>
+  const INTERNSHIP_TYPES = [
+    "Software Development",
+    "Web Development",
+    "Mobile App Development",
+    "Data Science / Analytics",
+    "AI / Machine Learning",
+    "Cybersecurity",
+    "DevOps / Cloud",
+    "UI/UX Design",
+    "Quality Assurance / Testing",
+    "Embedded / IoT",
+    "Other",
+  ];
 
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -20,7 +34,7 @@ export default function Form() {
     numberOfStudents: "",
     startDate: "",
     internshipDays: "",
-    internshipType: "",
+    internshipType: "", // now controlled via <select>
   });
 
   const [errors, setErrors] = useState({});
@@ -80,79 +94,64 @@ export default function Form() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  // FILE UPLOAD FUNCTION (REPLACED THE DUPLICATE)
+  // FILE UPLOAD
   const handleFileUpload = async (file) => {
-  console.log('🔄 Starting file upload:', file.name, file.size, file.type);
-  
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-    console.log('📦 FormData created');
-    
-    const uploadResponse = await uploadFile('http://localhost:8002/api/upload/pdf', formData);
-    console.log('📨 Response status:', uploadResponse.status);
-    
-    if (!uploadResponse.ok) {
-      const errorText = await uploadResponse.text();
-      console.error('❌ Server error:', errorText);
-      throw new Error(errorText || `Upload failed: ${uploadResponse.status}`);
-    }
-    
-    const result = await uploadResponse.text();
-    console.log('✅ Upload success:', result);
-    
-    // Extract filename from response
-    const fileNameMatch = result.match(/File uploaded successfully: (.+)/);
-    const fileName = fileNameMatch ? fileNameMatch[1] : file.name;
-    
-    setUploadedFileName(fileName);
-    setUploadedFile(file);
-    setErrors({...errors, document: undefined});
-    showMessage("File uploaded successfully!", "success");
-    
-  } catch (error) {
-    console.error('Upload error:', error);
-    showMessage(error.message || "File upload failed", "error");
-    setErrors({...errors, document: error.message || "File upload failed"});
-  }
-};
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-  // PROJECT RECOMMENDATION FUNCTION
+      const uploadResponse = await uploadFile("http://localhost:8002/api/upload/pdf", formData);
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        throw new Error(errorText || `Upload failed: ${uploadResponse.status}`);
+      }
+
+      const result = await uploadResponse.text();
+      const fileNameMatch = result.match(/File uploaded successfully: (.+)/);
+      const fileName = fileNameMatch ? fileNameMatch[1] : file.name;
+
+      setUploadedFileName(fileName);
+      setUploadedFile(file);
+      setErrors({ ...errors, document: undefined });
+      showMessage("File uploaded successfully!", "success");
+    } catch (error) {
+      showMessage(error.message || "File upload failed", "error");
+      setErrors({ ...errors, document: error.message || "File upload failed" });
+    }
+  };
+
+  // RECOMMENDATIONS
   const fetchProjectRecommendations = async () => {
-  console.log('fetchProjectRecommendations called');
-  if (!uploadedFileName) {
-    console.log('No filename available');
-    return false;
-  }
-
-  setSuggestionsStatus("loading");
-  
-  try {
-    console.log('Fetching recommendations...');
-    
-    // ✅ USE authFetch INSTEAD OF fetch
-    const response = await authFetch(
-      `http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileName)}`
-    );
-    
-    if (!response.ok) {
-      console.log('Response not OK:', response.status);
-      throw new Error('Failed to get recommendations');
+    if (!uploadedFileName) {
+      showMessage("Please upload a CV before fetching suggestions.", "error");
+      return false;
     }
-    
-    const data = await response.json();
-    console.log('Received data:', data);
-    setSuggestions(data);
-    setSuggestionsStatus("success");
-    return true;
-    
-  } catch (error) {
-    console.error('Error fetching recommendations:', error);
-    setSuggestionsStatus("error");
-    showMessage(error.message || "Failed to load project suggestions", "error");
-    return false;
-  }
-};
+
+    setSuggestionsStatus("loading");
+    try {
+      const response = await authFetch(
+        `http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileName)}`
+      );
+
+      if (!response.ok) throw new Error("Failed to get recommendations");
+
+      const data = await response.json();
+      setSuggestions(Array.isArray(data) ? data : []);
+      setSuggestionsStatus("success");
+      return true;
+    } catch (error) {
+      setSuggestionsStatus("error");
+      showMessage(error.message || "Failed to load project suggestions", "error");
+      return false;
+    }
+  };
+
+  // ✅ RETRY handler for Step 3
+  const handleRetrySuggestions = async () => {
+    setSuggestions([]);
+    await fetchProjectRecommendations();
+  };
 
   const removeFile = () => {
     setUploadedFile(null);
@@ -198,38 +197,22 @@ export default function Form() {
   };
 
   const goPrev = () => setCurrentStep((s) => Math.max(1, s - 1));
-  
-  // GO NEXT FUNCTION (REPLACED THE DUPLICATE)
+
   const goNext = async () => {
-  console.log('goNext called, currentStep:', currentStep);
-  console.log('uploadedFileName:', uploadedFileName);
-  
-  if (currentStep === 2) {
-    if (!uploadedFileName) {
-      console.log('No file uploaded, showing error');
-      setErrors({...errors, document: "Please upload a CV file"});
-      return;
+    if (currentStep === 2) {
+      if (!uploadedFileName) {
+        setErrors({ ...errors, document: "Please upload a CV file" });
+        return;
+      }
+      const success = await fetchProjectRecommendations();
+      if (!success) {
+        setErrors({ ...errors, topic: "Failed to load project suggestions" });
+        return;
+      }
     }
-    
-    console.log('Fetching recommendations...');
-    const success = await fetchProjectRecommendations();
-    
-    if (!success) {
-      console.log('Failed to fetch recommendations');
-      setErrors({...errors, topic: "Failed to load project suggestions"});
-      return;
-    }
-    console.log('Recommendations fetched successfully');
-  }
-  
-  if (!validateCurrent()) {
-    console.log('Validation failed');
-    return;
-  }
-  
-  console.log('Moving to next step');
-  setCurrentStep((s) => Math.min(TOTAL_STEPS, s + 1));
-};
+    if (!validateCurrent()) return;
+    setCurrentStep((s) => Math.min(TOTAL_STEPS, s + 1));
+  };
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -249,12 +232,6 @@ export default function Form() {
       showMessage("Application submitted successfully!", "success");
       resetForm();
     }, 1500);
-
-    console.log("Form submitted with data:", {
-      ...form,
-      file: uploadedFile ? uploadedFile.name : null,
-      selectedTopic,
-    });
   };
 
   const resetForm = () => {
@@ -283,23 +260,22 @@ export default function Form() {
   };
 
   const fetchProjectPlan = async () => {
-  try {
-    // ✅ USE authFetch INSTEAD OF fetch
-    const response = await authFetch(
-      `http://localhost:8002/api/project/plan/generate?projectName=${encodeURIComponent(selectedTopic)}&internshipDays=${encodeURIComponent(form.internshipDays)}&cvFilename=${encodeURIComponent(uploadedFileName)}`
-    );
-    
-    if (!response.ok) throw new Error("Failed to fetch project plan");
-    
-    return await response.json();
-  } catch (err) {
-    console.error("Error fetching project plan:", err);
-    showMessage(err.message || "Failed to generate project plan", "error");
-    return null;
-  }
-};
-
-  // ... (keep your existing JSX return statement)
+    try {
+      const response = await authFetch(
+        `http://localhost:8002/api/project/plan/generate?projectName=${encodeURIComponent(
+          selectedTopic.name
+        )}&internshipDays=${encodeURIComponent(form.internshipDays)}&cvFilename=${encodeURIComponent(
+          uploadedFileName
+        )}&projectDescription=${encodeURIComponent(selectedTopic.description || "")}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch project plan");
+      return await response.json();
+    } catch (err) {
+      console.error("Error fetching project plan:", err);
+      showMessage(err.message || "Failed to generate project plan", "error");
+      return null;
+    }
+  };
 
   return (
     <div className={`app-root step-${currentStep}`}>
@@ -316,7 +292,8 @@ export default function Form() {
           </div>
           <h1 className="main-title">WELCOME</h1>
           <p className="main-description">
-            Reimagine internship and project allocation with our AI-Powered Subject Recommender. Connect the right students with the right opportunities to drive growth and innovation
+            Reimagine internship and project allocation with our AI-Powered Subject Recommender. Connect the right
+            students with the right opportunities to drive growth and innovation
           </p>
         </div>
 
@@ -340,11 +317,7 @@ export default function Form() {
                 { id: 2, label: "Documents" },
                 { id: 3, label: "Review & Topics" },
               ].map((s) => (
-                <span
-                  key={s.id}
-                  className={`progress-label ${currentStep >= s.id ? "active" : ""}`}
-                  id={`label-${s.id}`}
-                >
+                <span key={s.id} className={`progress-label ${currentStep >= s.id ? "active" : ""}`} id={`label-${s.id}`}>
                   {s.label}
                 </span>
               ))}
@@ -357,7 +330,6 @@ export default function Form() {
               <div className={`form-step ${currentStep === 1 ? "active" : ""}`} id="step-1">
                 <div className="step-header">
                   <div className="step-icon step-icon-green">
-                    {/* Timer icon */}
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12,6 12,12 16,14" />
@@ -367,7 +339,6 @@ export default function Form() {
                   <p>Configure the specifics of your internship program</p>
                 </div>
 
-                {/* ORDER: Students → Start Date → Duration → Type */}
                 <div className="form-grid form-grid-2 form-grid-3-cols balanced-row">
                   {/* Students */}
                   <div className="form-group-large group-rows">
@@ -450,7 +421,9 @@ export default function Form() {
                         min="1"
                         value={form.internshipDays}
                         onChange={onInput("internshipDays")}
-                        onBlur={() => errors.internshipDays && setErrors((e) => ({ ...e, internshipDays: undefined }))}
+                        onBlur={() =>
+                          errors.internshipDays && setErrors((e) => ({ ...e, internshipDays: undefined }))
+                        }
                         className={errors.internshipDays ? "input-error" : ""}
                       />
                       <span className="input-badge badge-green">Days</span>
@@ -462,44 +435,60 @@ export default function Form() {
                   </div>
                 </div>
 
-                {/* Type of Internship — free text */}
+                {/* ✅ Type of Internship — SELECT (replacing the text input) */}
                 <div className="form-grid">
                   <div className="form-group">
-                    <label htmlFor="internship-type-text">Type of Internship</label>
-                    <input
-                      type="text"
-                      id="internship-type-text"
+                    <label htmlFor="internship-type-select">Type of Internship</label>
+                    <select
+                      id="internship-type-select"
                       name="internshipType"
-                      placeholder="e.g., Summer, Research, Graduate..."
                       value={form.internshipType}
                       onChange={onInput("internshipType")}
-                      onBlur={() =>
-                        errors.internshipType && setErrors((e) => ({ ...e, internshipType: undefined }))
-                      }
+                      onBlur={() => errors.internshipType && setErrors((e) => ({ ...e, internshipType: undefined }))}
                       className={errors.internshipType ? "input-error" : ""}
-                    />
+                    >
+                      <option value="" disabled>
+                        Choose a type…
+                      </option>
+                      {INTERNSHIP_TYPES.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
                     {errors.internshipType && <div className="field-error">{errors.internshipType}</div>}
                   </div>
                 </div>
               </div>
 
-              {/* STEP 2 — Documents (Summary → Upload Header → Upload Wrapper) */}
+              {/* STEP 2 — Documents */}
               <div className={`form-step ${currentStep === 2 ? "active" : ""}`} id="step-2">
-                {/* 1) Program Summary */}
+                {/* Program Summary */}
                 <div className="summary-card step2-spacing-lg">
                   <h3>Program Summary</h3>
                   <div className="summary-grid">
-                    <div className="summary-item"><span>Type:</span><span>{summary.internshipType}</span></div>
-                    <div className="summary-item"><span>Start Date:</span><span id="summary-start-date">{summary.startDate}</span></div>
-                    <div className="summary-item"><span>Duration:</span><span id="summary-duration">{summary.duration}</span></div>
-                    <div className="summary-item"><span>Students:</span><span id="summary-students">{summary.students}</span></div>
+                    <div className="summary-item">
+                      <span>Type:</span>
+                      <span>{summary.internshipType}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Start Date:</span>
+                      <span id="summary-start-date">{summary.startDate}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Duration:</span>
+                      <span id="summary-duration">{summary.duration}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Students:</span>
+                      <span id="summary-students">{summary.students}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* 2) Upload Header (document icon above area) */}
+                {/* Upload Header */}
                 <div className="upload-header step2-spacing-md">
                   <div className="step-icon step-icon-purple">
-                    {/* Document icon */}
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
@@ -507,7 +496,7 @@ export default function Form() {
                   </div>
                 </div>
 
-                {/* 3) Upload Wrapper (compact) */}
+                {/* Upload Area */}
                 <div className="upload-wrapper step2-spacing-md">
                   <div
                     className={`upload-area ${isDragOver ? "dragover" : ""} ${uploadedFile ? "uploaded" : ""}`}
@@ -540,7 +529,6 @@ export default function Form() {
                     {!uploadedFileName && (
                       <div className="upload-content" id="upload-content">
                         <div className="upload-icon-inner">
-                          {/* DOWNLOAD ICON — now fully stroked and visible */}
                           <svg viewBox="0 0 24 24" aria-hidden="true">
                             <line x1="12" y1="3" x2="12" y2="15" />
                             <polyline points="7 10 12 15 17 10" />
@@ -555,7 +543,8 @@ export default function Form() {
                               id="browse-btn"
                               className="browse-link"
                               onClick={() => fileInputRef.current?.click()}
-                            >browse files
+                            >
+                              browse files
                             </button>
                           </p>
                           <p className="upload-help">PDF files only, max 10MB</p>
@@ -620,7 +609,6 @@ export default function Form() {
               <div className={`form-step ${currentStep === 3 ? "active" : ""}`} id="step-3">
                 <div className="step-header">
                   <div className="step-icon step-icon-purple">
-                    {/* LIST ICON — for Review & Topics */}
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <line x1="9" y1="6" x2="21" y2="6" />
                       <line x1="9" y1="12" x2="21" y2="12" />
@@ -637,61 +625,65 @@ export default function Form() {
                 <div className="summary-card summary-to-suggestions-gap">
                   <h3>Quick Review</h3>
                   <div className="summary-grid">
-                    <div className="summary-item"><span>Type:</span><span>{summary.internshipType}</span></div>
-                    <div className="summary-item"><span>Start Date:</span><span>{summary.startDate}</span></div>
-                    <div className="summary-item"><span>Duration:</span><span>{summary.duration}</span></div>
-                    <div className="summary-item"><span>Students:</span><span>{summary.students}</span></div>
+                    <div className="summary-item">
+                      <span>Type:</span>
+                      <span>{summary.internshipType}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Start Date:</span>
+                      <span>{summary.startDate}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Duration:</span>
+                      <span>{summary.duration}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Students:</span>
+                      <span>{summary.students}</span>
+                    </div>
                   </div>
                 </div>
 
                 <div className="summary-card">
-                  <h3>Suggested Project Topics</h3>
+                  {/* Header row with Retry */}
+                  <div className="suggestion-header">
+                    <h3>Suggested Project Topics</h3>
+                    <button
+                      type="button"
+                      className="nav-btn nav-btn-secondary retry-btn"
+                      onClick={handleRetrySuggestions}
+                      disabled={suggestionsStatus === "loading"}
+                      title="Retry generating suggestions"
+                    >
+                      {suggestionsStatus === "loading" ? "Retrying…" : "Retry"}
+                    </button>
+                  </div>
 
                   {suggestionsStatus === "loading" && <p className="help-text">Loading suggestions…</p>}
 
                   {suggestionsStatus === "error" && (
-                    <div>
-                      <p className="help-text error-text">Couldn’t load suggestions from the server.</p>
-                      <button
-                        type="button"
-                        className="nav-btn nav-btn-secondary"
-                        onClick={() => {
-                          setSuggestionsStatus("loading");
-                          fetch("/api/suggestions?limit=3")
-                            .then(async (res) => {
-                              if (!res.ok) throw new Error("Failed to fetch suggestions");
-                              const data = await res.json();
-                              if (!data?.topics || !Array.isArray(data.topics)) throw new Error("Invalid response");
-                              setSuggestions(data.topics.slice(0, 3));
-                              setSuggestionsStatus("success");
-                            })
-                            .catch(() => setSuggestionsStatus("error"));
-                        }}
-                      >
-                        Retry
-                      </button>
-                    </div>
+                    <p className="help-text error-text">Couldn’t load suggestions from the server.</p>
                   )}
 
                   {suggestionsStatus === "success" && suggestions.length > 0 && (
                     <div className="suggestion-grid">
-                      {suggestions.map((projectIdea, idx) => ( // ← Define projectIdea here
+                      {suggestions.map((projectIdea, idx) => (
                         <label
-                           key={idx}
-                           className={`suggestion-card ${selectedTopic === projectIdea ? "selected" : ""}`}
+                          key={idx}
+                          className={`suggestion-card ${selectedTopic === projectIdea ? "selected" : ""}`}
                           onClick={() => setSelectedTopic(projectIdea)}
                         >
                           <input
                             type="radio"
                             name="project-topic"
-                            checked={selectedTopic === projectIdea} // ← Use projectIdea here
-                            onChange={() => setSelectedTopic(projectIdea)} // ← And here
+                            checked={selectedTopic === projectIdea}
+                            onChange={() => setSelectedTopic(projectIdea)}
                             required
                           />
                           <div className="suggestion-text">
-                            <strong>{projectIdea.name}</strong> {/* ← And here */}
+                            <strong>{projectIdea.name}</strong>
                             <br />
-                            <small>{projectIdea.description}</small> {/* ← And here */}
+                            <small>{projectIdea.description}</small>
                           </div>
                         </label>
                       ))}
@@ -703,7 +695,6 @@ export default function Form() {
                   )}
 
                   {errors.topic && <div className="field-error">{errors.topic}</div>}
-
                   <p className="help-text footnote">Choosing a topic is required to proceed.</p>
                 </div>
               </div>
@@ -734,30 +725,29 @@ export default function Form() {
 
                 {currentStep === TOTAL_STEPS && (
                   <button
-                      type="button"
-                      id="submit-btn"
-                       className="nav-btn nav-btn-success" 
-                      disabled={submitting}
-                      onClick={async () => {
-                        setSubmitting(true);
-                        const plan = await fetchProjectPlan();
-                        setSubmitting(false);
+                    type="button"
+                    id="submit-btn"
+                    className="nav-btn nav-btn-success"
+                    disabled={submitting}
+                    onClick={async () => {
+                      setSubmitting(true);
+                      const plan = await fetchProjectPlan();
+                      setSubmitting(false);
 
-                        if (plan) {
-                          navigate("/Report-Page", { state: { plan } });
-                        } else {
-                          showMessage("Failed to generate project plan. Please try again.", "error");
-                        }
-                      }}
-                    >
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                        <polyline points="22,4 12,14.01 9,11.01" />
-                      </svg>
-                      {submitting ? "Submitting..." : "Submit"}
-                    </button>
-                  )}
-
+                      if (plan) {
+                        navigate("/Report-Page", { state: { plan } });
+                      } else {
+                        showMessage("Failed to generate project plan. Please try again.", "error");
+                      }
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22,4 12,14.01 9,11.01" />
+                    </svg>
+                    {submitting ? "Submitting..." : "Submit"}
+                  </button>
+                )}
               </div>
             </form>
           </div>

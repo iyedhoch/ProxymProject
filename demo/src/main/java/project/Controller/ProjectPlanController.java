@@ -1,7 +1,9 @@
 package project.Controller;
 
 import org.springframework.web.bind.annotation.*;
+import project.Dto.NameEmailResponse;
 import project.Service.ProjectPlan.ProjectPlanService;
+import project.Service.NameExtraction.NameExtractionService;
 import project.Dto.ProjectPlanResponse;
 
 import java.nio.file.Path;
@@ -12,9 +14,12 @@ import java.nio.file.Paths;
 public class ProjectPlanController {
 
     private final ProjectPlanService projectPlanService;
+    private final NameExtractionService nameExtractionService;
 
-    public ProjectPlanController(ProjectPlanService projectPlanService) {
+    public ProjectPlanController(ProjectPlanService projectPlanService,
+                                 NameExtractionService nameExtractionService) {
         this.projectPlanService = projectPlanService;
+        this.nameExtractionService = nameExtractionService;
     }
 
     @GetMapping("/generate")
@@ -25,18 +30,27 @@ public class ProjectPlanController {
             // Build path to existing CV in the uploads folder
             Path cvPath = Paths.get("uploads").resolve(cvFilename).toAbsolutePath();
 
-            // Generate detailed plan and return structured response
-            return projectPlanService.generateProjectPlan(
+            // Generate detailed plan
+            ProjectPlanResponse planResponse = projectPlanService.generateProjectPlan(
                     projectName,
                     cvPath.toString(),
                     internshipDays
             );
+
+            // Start name/email extraction asynchronously
+            nameExtractionService.extractAndSaveNameAndEmail(cvPath.toString());
+
+            // Immediately return plan to frontend
+            return planResponse;
+
         } catch (Exception e) {
             e.printStackTrace();
-            // Return an empty response with error handling (consider proper error response DTO)
-            ProjectPlanResponse errorResponse = new ProjectPlanResponse();
-            // You might want to add error fields to your ProjectPlanResponse or create a separate error DTO
-            return errorResponse;
+            return new ProjectPlanResponse(); // fallback empty response
         }
     }
+    @GetMapping("/get")
+    public NameEmailResponse getNameAndEmail(@RequestParam String cvFilename) {
+        return nameExtractionService.getNameAndEmail(cvFilename);
+    }
 }
+

@@ -1,24 +1,24 @@
 package project.Controller;
 
 import org.springframework.web.bind.annotation.*;
-import project.Dto.NameEmailResponse;
-import project.Service.NameExtraction.NameExtractionService;
+import project.Dto.ProjectPlanResponse;
 import project.Service.Ollama.OllamaService;
+import project.Service.TestProjectPlanService.TestProjectPlanService;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/ollama")
 public class OllamaController {
 
-    private final NameExtractionService nameExtractionService;
+    private final TestProjectPlanService testProjectPlanService;
     private final OllamaService ollamaService;
 
     // ✅ One constructor injection
-    public OllamaController(NameExtractionService nameExtractionService,
-                            OllamaService ollamaService) {
-        this.nameExtractionService = nameExtractionService;
+    public OllamaController(OllamaService ollamaService, TestProjectPlanService testProjectPlanService) {
+        this.testProjectPlanService = testProjectPlanService;
         this.ollamaService = ollamaService;
     }
 
@@ -27,9 +27,18 @@ public class OllamaController {
         return ollamaService.askOllama(q);
     }
 
-    @GetMapping("/extract")
-    public NameEmailResponse extract(@RequestParam String cvFilename) {
-        Path cvPath = Paths.get("uploads").resolve(cvFilename).toAbsolutePath();
-        return nameExtractionService.extractAndSaveNameAndEmail(cvPath.toString());
+    @GetMapping("/project-plan")
+    public ProjectPlanResponse generateProjectPlan(
+            @RequestParam String projectName,
+            @RequestParam String cvFilenames,
+            @RequestParam int durationDays) {
+
+        String[] filenames = cvFilenames.split(",");
+        List<String> cvPaths = Arrays.stream(filenames)
+                .map(f -> Paths.get("uploads").resolve(f).toAbsolutePath().toString())
+                .toList();
+
+        return testProjectPlanService.testgenerateProjectPlan(projectName, cvPaths, durationDays);
     }
+
 }

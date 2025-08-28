@@ -17,8 +17,8 @@ function App() {
         <Route path="/login" element={<Login/>}/>
         <Route path="/register" element={<Register/>}/>
         <Route path="/Report-Page" element={<Report/>}/>
-        <Route path="/projects" element={<ProjectOverview/>}/>
-        <Route path="/projects/:id" element={<ProjectDetails/>}/>
+        <Route path="/Projects-Overview" element={<ProjectOverview/>}/>
+        <Route path="/Project-Details/:id" element={<ProjectDetails/>}/>
       </Routes>
     </Router>
   );

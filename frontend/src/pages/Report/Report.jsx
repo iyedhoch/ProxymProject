@@ -1,16 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./Report.css";
+import axios from "axios";
 
 export default function Report() {
-  const location = useLocation();
 
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState(null);
   const [draft, setDraft] = useState(null);
   const [error, setError] = useState(null);
   const [editMode, setEditMode] = useState(true); // default editable
-
+  const location = useLocation();
+  const navigate = useNavigate();
+  const cvFilename = location.state?.cvFilename; 
+  const [nameEmail, setNameEmail] = useState(null);  
+  console.log("cvFilename:", cvFilename);
   // Load plan from navigation state or sessionStorage
   useEffect(() => {
     let mounted = true;
@@ -234,6 +238,34 @@ export default function Report() {
     window.print();
   };
 
+  const onClickGoToProjects = () => {
+    if (!cvFilename) {
+      console.error("cvFilename is missing!");
+      return;
+    }
+    navigate("/Projects-Overview", { state: { cvFilename } });
+  };
+
+
+  const fetchNameEmail = async () => {
+    try {
+      const response = await axios.get("/api/project/name-email/get", {
+        params: { cvFilename },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+    setNameEmail(response.data);
+    } catch (err) {
+      console.error("Failed to fetch name/email", err);
+    } finally {
+      setLoading(false);
+    }
+};
+
+useEffect(()=>{
+  fetchNameEmail();
+},[])
+
+
   return (
     <div className="result-page">
       {/* Background */}
@@ -326,6 +358,16 @@ export default function Report() {
                 <div className="result-stat-box">
                   <span className="result-stat-label">Total Duration</span>
                   <span className="result-stat-value">{stats.totalWeeks}</span>
+                </div>
+
+                <div className="result-stat-box">
+                  <span className="result-stat-label">Trainees:</span>
+                  <span className="result-stat-value">
+                    Name: {nameEmail?.name || "Loading..."}
+                  </span>
+                  <span className="result-stat-value">
+                    Email: {nameEmail?.email || "Loading..."}
+                  </span>
                 </div>
               </div>
 
@@ -741,12 +783,12 @@ export default function Report() {
               {/* Actions */}
               <div className="result-actions">
                 <div className="actions-left">
-                  <a className="result-btn result-btn-success" href="/" title="Start a new application">
+                  <button className="result-btn result-btn-success"  title="Start a new application" onClick={onClickGoToProjects}>
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <polyline points="15,18 9,12 15,6" />
                     </svg>
                     Start New Application
-                  </a>
+                  </button>
                 </div>
 
                 <div className="actions-right">

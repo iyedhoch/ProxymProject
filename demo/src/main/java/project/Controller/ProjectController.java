@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/project")
@@ -23,16 +24,20 @@ public class ProjectController {
         this.recommendationService = recommendationService;
     }
 
+    // ✅ changed filename → List<String> filenames
     @GetMapping("/recommendation")
-    public List<ProjectIdea> getProjectRecommendation(@RequestParam String filename,
+    public List<ProjectIdea> getProjectRecommendation(@RequestParam("filename") List<String> filenames,
                                                       @RequestParam(defaultValue = "0") int retry) {
         try {
-            Path cvPath = Paths.get("uploads").resolve(filename).toAbsolutePath();
-            // Call service to generate DTO list
-            return recommendationService.recommendProjects(cvPath.toString(),retry);
+            // Resolve all CVs
+            List<String> cvPaths = filenames.stream()
+                    .map(f -> Paths.get("uploads").resolve(f).toAbsolutePath().toString())
+                    .collect(Collectors.toList());
+
+            // Call service (multi-CV overload)
+            return recommendationService.recommendProjects(cvPaths, retry);
         } catch (Exception e) {
             e.printStackTrace();
-            // Return a fallback list with a single ProjectIdea containing the error
             return Collections.singletonList(
                     new ProjectIdea("Error", "Failed to generate projects: " + e.getMessage())
             );

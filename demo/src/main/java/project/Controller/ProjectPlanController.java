@@ -8,6 +8,8 @@ import project.Dto.ProjectPlanResponse;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/project/plan")
@@ -22,23 +24,28 @@ public class ProjectPlanController {
         this.nameExtractionService = nameExtractionService;
     }
 
+    // ✅ changed cvFilename → List<String> cvFilenames
     @GetMapping("/generate")
     public ProjectPlanResponse generatePlan(@RequestParam String projectName,
                                             @RequestParam int internshipDays,
-                                            @RequestParam String cvFilename) {
+                                            @RequestParam("cvFilename") List<String> cvFilenames) {
         try {
-            // Build path to existing CV in the uploads folder
-            Path cvPath = Paths.get("uploads").resolve(cvFilename).toAbsolutePath();
+            // Resolve all CV paths
+            List<String> cvPaths = cvFilenames.stream()
+                    .map(f -> Paths.get("uploads").resolve(f).toAbsolutePath().toString())
+                    .collect(Collectors.toList());
 
-            // Generate detailed plan
+            // Generate detailed plan with multiple CVs
             ProjectPlanResponse planResponse = projectPlanService.generateProjectPlan(
                     projectName,
-                    cvPath.toString(),
+                    cvPaths,
                     internshipDays
             );
 
-            // Start name/email extraction asynchronously
-            nameExtractionService.extractAndSaveNameAndEmail(cvPath.toString());
+            // Start name/email extraction asynchronously for each CV
+            for (String path : cvPaths) {
+                nameExtractionService.extractAndSaveNameAndEmail(path);
+            }
 
             // Immediately return plan to frontend
             return planResponse;
@@ -48,9 +55,9 @@ public class ProjectPlanController {
             return new ProjectPlanResponse(); // fallback empty response
         }
     }
+
     @GetMapping("/get")
     public NameEmailResponse getNameAndEmail(@RequestParam String cvFilename) {
         return nameExtractionService.getNameAndEmail(cvFilename);
     }
 }
-

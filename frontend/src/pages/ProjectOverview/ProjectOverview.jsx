@@ -1,58 +1,65 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate,useLocation } from "react-router-dom";
 import "./ProjectOverview.css";
 
-const mockProjectsList = [
-  {
-    id: "p1",
-    name: "Inventory Management System",
-    internshipType: "Software Development",
-    startDate: "2025-02-03",
-    endDate: "2025-04-30",
-    hr: { name: "Sonia Hamdi", email: "sonia.hamdi@company.com" },
-    trainees: [
-      { name: "Ali Ben", email: "ali.ben@example.com" },
-      { name: "Maya Noor", email: "maya.noor@example.com" },
-    ],
-  },
-  {
-    id: "p2",
-    name: "Helpdesk Chatbot",
-    internshipType: "AI / NLP",
-    startDate: "2025-03-01",
-    endDate: "2025-05-15",
-    hr: { name: "Hatem Messaoud", email: "hatem.messaoud@company.com" },
-    trainees: [
-      { name: "Lea Saidi", email: "lea.saidi@example.com" },
-      { name: "Yassine K.", email: "yassine.k@example.com" },
-    ],
-  },
-  {
-    id: "p3",
-    name: "Mobile Expense Tracker",
-    internshipType: "Mobile",
-    startDate: "2025-01-15",
-    endDate: "2025-03-20",
-    hr: { name: "Sonia Hamdi", email: "sonia.hamdi@company.com" },
-    trainees: [{ name: "Imen Tr.", email: "imen.tr@example.com" }],
-  },
-];
-
 const fmt = (d) =>
-  new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  new Date(d).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
 export default function ProjectList({
   onOpenProject,
   onStartNewApplication,
-  projects = mockProjectsList,
+  projects = [], 
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [query, setQuery] = useState("");
+  const [projectsWithTrainees, setProjectsWithTrainees] = useState(projects);
+
+  useEffect(() => {
+    if (location.state?.project) {
+      setProjectsWithTrainees((prev) => [...prev, location.state.project]);
+    }
+  }, [location.state])
+
+  useEffect(() => {
+    async function fetchTrainees() {
+      try {
+        if (!projects || projects.length === 0) return;
+
+        const allCVs = projects.flatMap((p) => p.cvFilenames || []);
+        if (allCVs.length === 0) return;
+
+        const queryString = allCVs
+          .map((cv) => `cvFilename=${encodeURIComponent(cv)}`)
+          .join("&");
+
+        const res = await fetch(
+          `http://localhost:8002/api/project/plan/get-multiple?${queryString}`
+        );
+        const data = await res.json();
+
+        const updatedProjects = projects.map((p) => ({
+          ...p,
+          trainees: (p.cvFilenames || []).map((cv) => data[cv]).filter(Boolean),
+        }));
+
+        setProjectsWithTrainees(updatedProjects);
+      } catch (err) {
+        console.error("Error fetching trainees:", err);
+      }
+    }
+
+    fetchTrainees();
+  }, [projects]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return projects;
-    return projects.filter((p) => {
+    if (!q) return projectsWithTrainees;
+    return projectsWithTrainees.filter((p) => {
       const hay = [
         p.name,
         p.internshipType,
@@ -66,7 +73,7 @@ export default function ProjectList({
         .toLowerCase();
       return hay.includes(q);
     });
-  }, [projects, query]);
+  }, [projectsWithTrainees, query]);
 
   const openProject = (id) => {
     if (onOpenProject) return onOpenProject(id);
@@ -75,7 +82,7 @@ export default function ProjectList({
 
   const startNew = () => {
     if (onStartNewApplication) return onStartNewApplication();
-    navigate("/"); // your “Test.jsx” flow
+    navigate("/");
   };
 
   return (
@@ -86,6 +93,7 @@ export default function ProjectList({
       <div className="pl-float pl-float-3" />
 
       <div className="pl-container">
+        {/* Header */}
         <div className="pl-header">
           <div className="pl-logo">
             <img src="/logoproxym.png" alt="logo" width="40" height="40" />
@@ -112,7 +120,7 @@ export default function ProjectList({
             </div>
           </div>
 
-          {/* Table */}
+          {/* Projects table */}
           <div className="pl-table-wrap">
             <table className="pl-table">
               <thead>
@@ -128,13 +136,19 @@ export default function ProjectList({
               <tbody>
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="pl-empty">No projects match “{query}”.</td>
+                    <td colSpan={6} className="pl-empty">
+                      No projects match “{query}”.
+                    </td>
                   </tr>
                 )}
                 {filtered.map((p) => (
                   <tr key={p.id}>
                     <td>
-                      <button className="pl-link" onClick={() => openProject(p.id)} title="Open project">
+                      <button
+                        className="pl-link"
+                        onClick={() => openProject(p.id)}
+                        title="Open project"
+                      >
                         {p.name}
                       </button>
                     </td>
@@ -145,7 +159,9 @@ export default function ProjectList({
                       <div className="pl-hr">
                         <div className="pl-hr-name">{p.hr?.name || "—"}</div>
                         {p.hr?.email ? (
-                          <a className="pl-hr-mail" href={`mailto:${p.hr.email}`}>{p.hr.email}</a>
+                          <a className="pl-hr-mail" href={`mailto:${p.hr.email}`}>
+                            {p.hr.email}
+                          </a>
                         ) : (
                           <span className="pl-hr-mail">—</span>
                         )}
@@ -181,4 +197,3 @@ export default function ProjectList({
     </div>
   );
 }
-

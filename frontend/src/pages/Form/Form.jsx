@@ -5,16 +5,9 @@ import { authFetch, uploadFile } from "../../utils/api";
 
 export default function Form() {
   const TOTAL_STEPS = 3;
-
-  // ✅ internship types used by the new <select>
-  const INTERNSHIP_TYPES = [
-    "Stage d'été",
-    "Stage PFE"
-  ];
+  const INTERNSHIP_TYPES = ["Stage d'été", "Stage PFE"];
 
   const [currentStep, setCurrentStep] = useState(1);
-  //const [uploadedFile, setUploadedFile] = useState(null);
-  //const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);        
   const [uploadedFileNames, setUploadedFileNames] = useState([]);
 
@@ -28,7 +21,7 @@ export default function Form() {
     numberOfStudents: "",
     startDate: "",
     internshipDays: "",
-    internshipType: "", // now controlled via <select>
+    internshipType: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -37,23 +30,23 @@ export default function Form() {
   const [selectedTopic, setSelectedTopic] = useState(null);
 
   const fileInputRefs = useRef([]);
-  const uploadAreaRef = useRef(null);
 
-  const studentsCount= useMemo(()=>{
-    const n=parseInt(form.numberOfStudents,10);
-    return Number.isFinite(n) && n>0 ? n:0;
-  },[form.numberOfStudents]);
+  const studentsCount = useMemo(() => {
+    const n = parseInt(form.numberOfStudents, 10);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }, [form.numberOfStudents]);
 
-  useEffect(()=>{
-    if (studentsCount==0){
+  // Adjust uploaded files arrays when students count changes
+  useEffect(() => {
+    if (studentsCount === 0) {
       setUploadedFiles([]);
       setUploadedFileNames([]);
-      fileInputRefs.current=[];
+      fileInputRefs.current = [];
       return;
     }
-    setUploadedFiles(prev=>{
-      const next=prev.slice(0,studentsCount);
-      while(next.length<studentsCount) next.push(null);
+    setUploadedFiles(prev => {
+      const next = prev.slice(0, studentsCount);
+      while (next.length < studentsCount) next.push(null);
       return next;
     });
     setUploadedFileNames(prev => {
@@ -61,10 +54,8 @@ export default function Form() {
       while (next.length < studentsCount) next.push("");
       return next;
     });
-    fileInputRefs.current=(fileInputRefs.current || [].slice(0,studentsCount));
-    while(fileInputRefs.current.length<studentsCount) fileInputRefs.current.push(null);
-  
-  },[studentsCount]);
+    while (fileInputRefs.current.length < studentsCount) fileInputRefs.current.push(null);
+  }, [studentsCount]);
 
   const summary = useMemo(
     () => ({
@@ -82,36 +73,6 @@ export default function Form() {
     }
   }, []);
 
-  useEffect(() => {
-    const preventDefaults = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-    ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) =>
-      document.body.addEventListener(eventName, preventDefaults, false)
-    );
-    return () => {
-      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) =>
-        document.body.removeEventListener(eventName, preventDefaults, false)
-      );
-    };
-  }, []);
-
-  // Fetch project recommendations when entering Step 3
-  /*useEffect(() => {
-    if (currentStep !== 3 || !uploadedFileName) return;
-    fetchProjectRecommendations();
-  }, [currentStep, uploadedFileName]);*/
-
-  useEffect(() => {
-    if (currentStep !== 3) return;
-    const allReady =
-    studentsCount > 0 && uploadedFileNames.length === studentsCount && uploadedFileNames.every(Boolean);
-    if (!allReady) return;
-    fetchProjectRecommendations();
-  }, [currentStep, studentsCount, uploadedFileNames]);
-
-
   const showMessage = (text, type = "info") => {
     setMessage({ text, type });
     const t = setTimeout(() => setMessage(null), 5000);
@@ -125,96 +86,48 @@ export default function Form() {
   };
 
   // FILE UPLOAD
-  const handleFileUpload = async (file,index) => {
+  const handleFileUpload = async (file, index) => {
     if (!file) return;
 
-    console.log(`🔄 Starting file upload [slot ${index + 1}]:`, file.name, file.size, file.type);
-    
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      console.log('📦 FormData created');
-      const uploadResponse = await uploadFile('http://localhost:8002/api/upload/pdf', formData);
-      console.log('📨 Response status:', uploadResponse.status);
-      
+      formData.append("file", file);
+      const uploadResponse = await uploadFile("http://localhost:8002/api/upload/pdf", formData);
+
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
-        console.error('❌ Server error:', errorText);
         throw new Error(errorText || `Upload failed: ${uploadResponse.status}`);
       }
 
-    const result = await uploadResponse.text();
-    console.log('✅ Upload success:', result);
-    
-    // Extract filename from response
-    const fileNameMatch = result.match(/File uploaded successfully: (.+)/);
-    const fileName = fileNameMatch ? fileNameMatch[1] : file.name;
-    
-    //setUploadedFileName(fileName);
-    setUploadedFiles(prev=>{
-      const next=[...prev];
-      next[index]=file;
-      return next
-    });
-    
-    //setUploadedFile(file);
-    setUploadedFileNames(prev=>{
-      const next=[...prev]; 
-      next[index]=fileName;
-      return next;
-    });
-    
-    //setErrors({...errors, document: undefined});
-    //showMessage("File uploaded successfully!", "success");
-    
-    setErrors(prev => {
-      const n = { ...prev };
-      delete n[`document-${index}`];
-      return n;
-    });
-  
-    showMessage(`CV ${index + 1} uploaded successfully!`, "success");
-  
-  } /*catch (error) {
-    console.error('Upload error:', error);
-    showMessage(error.message || "File upload failed", "error");
-    setErrors({...errors, document: error.message || "File upload failed"});
-    }*/
-   catch (error) {
-    console.error('Upload error:', error);
-    showMessage(error.message || "File upload failed", "error");
-    setErrors(prev => ({ ...prev, [`document-${index}`]: error.message || "File upload failed" }));
-  }
-};
-  
-  
+      const result = await uploadResponse.text();
+      const fileNameMatch = result.match(/File uploaded successfully: (.+)/);
+      const fileName = fileNameMatch ? fileNameMatch[1] : file.name;
 
-  // RECOMMENDATIONS
-  /*const fetchProjectRecommendations = async () => {
-    if (!uploadedFileName) {
-      showMessage("Please upload a CV before fetching suggestions.", "error");
-      return false;
-    }
+      setUploadedFiles(prev => {
+        const next = [...prev];
+        next[index] = file;
+        return next;
+      });
+      setUploadedFileNames(prev => {
+        const next = [...prev];
+        next[index] = fileName;
+        return next;
+      });
 
-    setSuggestionsStatus("loading");
-    try {
-      const response = await authFetch(
-        `http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileName)}`
-      );
-
-      if (!response.ok) throw new Error("Failed to get recommendations");
-
-      const data = await response.json();
-      setSuggestions(Array.isArray(data) ? data : []);
-      setSuggestionsStatus("success");
-      return true;
+      setErrors(prev => {
+        const n = { ...prev };
+        delete n[`document-${index}`];
+        return n;
+      });
+      showMessage(`CV ${index + 1} uploaded successfully!`, "success");
     } catch (error) {
-      setSuggestionsStatus("error");
-      showMessage(error.message || "Failed to load project suggestions", "error");
-      return false;
+      console.error("Upload error:", error);
+      showMessage(error.message || "File upload failed", "error");
+      setErrors(prev => ({ ...prev, [`document-${index}`]: error.message || "File upload failed" }));
     }
-  };*/
-  //new fech project recomendation
+  };
+
+  // PROJECT RECOMMENDATIONS
   const fetchProjectRecommendations = async () => {
     if (uploadedFileNames.length === 0 || !uploadedFileNames[0]) {
       showMessage("Please upload CVs before fetching suggestions.", "error");
@@ -222,8 +135,9 @@ export default function Form() {
     }
     setSuggestionsStatus("loading");
     try {
+      const params = uploadedFileNames.map(f => `filename=${encodeURIComponent(f)}`).join("&");
       const response = await authFetch(
-        `http://localhost:8002/api/project/recommendation?filename=${encodeURIComponent(uploadedFileNames[0])}`
+        `http://localhost:8002/api/project/recommendation?${params}`
       );
       if (!response.ok) throw new Error("Failed to get recommendations");
       const data = await response.json();
@@ -237,19 +151,10 @@ export default function Form() {
     }
   };
 
-
-
-  // ✅ RETRY handler for Step 3
   const handleRetrySuggestions = async () => {
     setSuggestions([]);
     await fetchProjectRecommendations();
   };
-
-  /*const removeFile = () => {
-    setUploadedFile(null);
-    setUploadedFileName("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };*/
 
   const removeFile = (index) => {
     setUploadedFiles(prev => {
@@ -257,17 +162,17 @@ export default function Form() {
       next[index] = null;
       return next;
     });
-  setUploadedFileNames(prev => {
-    const next = [...prev];
-    next[index] = "";
-    return next;
-  });
-  if (fileInputRefs.current?.[index]) {
-    fileInputRefs.current[index].value = "";
-  }
-};
+    setUploadedFileNames(prev => {
+      const next = [...prev];
+      next[index] = "";
+      return next;
+    });
+    if (fileInputRefs.current?.[index]) {
+      fileInputRefs.current[index].value = "";
+    }
+  };
 
-  // Validations
+  // VALIDATION
   const validateStep1 = () => {
     const nextErrors = {};
     const days = parseInt(form.internshipDays, 10);
@@ -282,14 +187,6 @@ export default function Form() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  /*const validateStep2 = () => {
-    const nextErrors = {};
-    if (!uploadedFileName) nextErrors.document = "Please upload a PDF document";
-    setErrors(nextErrors);
-    if (nextErrors.document) showMessage(nextErrors.document, "error");
-    return Object.keys(nextErrors).length === 0;
-  };*/
-  
   const validateStep2 = () => {
     const nextErrors = {};
     for (let i = 0; i < studentsCount; i++) {
@@ -301,7 +198,6 @@ export default function Form() {
     if (Object.keys(nextErrors).length > 0) showMessage("Please upload all CVs", "error");
     return Object.keys(nextErrors).length === 0;
   };
-
 
   const validateStep3 = () => {
     const nextErrors = {};
@@ -321,10 +217,7 @@ export default function Form() {
 
   const goNext = async () => {
     if (currentStep === 2) {
-      if (!validateStep2()) {
-        return;
-      }
-
+      if (!validateStep2()) return;
       const success = await fetchProjectRecommendations();
       if (!success) {
         setErrors({ ...errors, topic: "Failed to load project suggestions" });
@@ -333,20 +226,21 @@ export default function Form() {
       setCurrentStep((s) => Math.min(TOTAL_STEPS, s + 1));
       return;
     }
-
-
     if (!validateCurrent()) return;
     setCurrentStep((s) => Math.min(TOTAL_STEPS, s + 1));
   };
 
+  // SUBMIT
   const onSubmit = (e) => {
     e.preventDefault();
     if (!validateCurrent()) return;
 
     const formData = new FormData();
     Object.entries(form).forEach(([k, v]) => formData.append(k, v));
-    if (uploadedFile) formData.append("document", uploadedFile);
-    if (selectedTopic) formData.append("selectedTopic", selectedTopic);
+    uploadedFiles.forEach((file, i) => {
+      if (file) formData.append(`document-${i}`, file);
+    });
+    if (selectedTopic) formData.append("selectedTopic", JSON.stringify(selectedTopic));
 
     setSubmitting(true);
     showMessage("Submitting your application...", "info");
@@ -366,12 +260,10 @@ export default function Form() {
       internshipDays: "",
       internshipType: "",
     });
-    //setUploadedFile(null);
-    //setUploadedFileName("");
     setUploadedFiles([]);
     setUploadedFileNames([]);
-    //if (fileInputRef.current) fileInputRef.current.value = "";
-    if (fileInputRefs.current) fileInputRefs.current.forEach(inp => { if (inp) inp.value = ""; });fileInputRefs.current = [];
+    if (fileInputRefs.current) fileInputRefs.current.forEach(inp => { if (inp) inp.value = ""; });
+    fileInputRefs.current = [];
     setCurrentStep(1);
     setErrors({});
     setSuggestions([]);
@@ -387,23 +279,6 @@ export default function Form() {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
-  /*const fetchProjectPlan = async () => {
-    try {
-      const response = await authFetch(
-        `http://localhost:8002/api/project/plan/generate?projectName=${encodeURIComponent(
-          selectedTopic.name
-        )}&internshipDays=${encodeURIComponent(form.internshipDays)}&cvFilename=${encodeURIComponent(
-          uploadedFileName
-        )}&projectDescription=${encodeURIComponent(selectedTopic.description || "")}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch project plan");
-      return await response.json();
-    } catch (err) {
-      console.error("Error fetching project plan:", err);
-      showMessage(err.message || "Failed to generate project plan", "error");
-      return null;
-    }
-  };*/
   //new fetch for project plan
   const fetchProjectPlan = async () => {
     try {
@@ -645,94 +520,6 @@ export default function Form() {
                   </div>
                 </div>
 
-                {/* Upload Area */}
-                <div className="upload-wrapper step2-spacing-md">
-                  {/*<div
-                    className={`upload-area ${isDragOver ? "dragover" : ""} ${uploadedFile ? "uploaded" : ""}`}
-                    id="upload-area"
-                    ref={uploadAreaRef}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setIsDragOver(true);
-                    }}
-                    onDragLeave={(e) => {
-                      e.preventDefault();
-                      setIsDragOver(false);
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setIsDragOver(false);
-                      const file = e.dataTransfer?.files?.[0];
-                      if (file) handleFileUpload(file);
-                    }}
-                  >
-                    <input
-                      type="file"
-                      id="file-input"
-                      ref={fileInputRef}
-                      accept=".pdf"
-                      hidden
-                      onChange={(e) => handleFileUpload(e.target.files?.[0])}
-                    />
-
-                    {!uploadedFileName && (
-                      <div className="upload-content" id="upload-content">
-                        <div className="upload-icon-inner">
-                          <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <line x1="12" y1="3" x2="12" y2="15" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="5" y1="21" x2="19" y2="21" />
-                          </svg>
-                        </div>
-                        <div className="upload-text">
-                          <p>
-                            Drop your PDF here, or
-                            <button
-                              type="button"
-                              id="browse-btn"
-                              className="browse-link"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              browse files
-                            </button>
-                          </p>
-                          <p className="upload-help">PDF files only, max 10MB</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {uploadedFileName && (
-                      <div className="upload-success" id="upload-success">
-                        <div className="success-content">
-                          <div className="success-icon">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                              <polyline points="14,2 14,8 20,8" />
-                              <line x1="16" y1="13" x2="8" y2="13" />
-                              <line x1="16" y1="17" x2="8" y2="17" />
-                            </svg>
-                          </div>
-                          <div className="success-info">
-                            <p id="file-name">{uploadedFile.name}</p>
-                            <p id="file-size">{formatFileSize(uploadedFile.size)}</p>
-                            <div className="success-badge">
-                              <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22,4 12,14.01 9,11.01" />
-                              </svg>
-                              Uploaded
-                            </div>
-                          </div>
-                          <button type="button" id="remove-file" className="remove-btn" onClick={removeFile}>
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <line x1="18" y1="6" x2="6" y2="18" />
-                              <line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>*/}
                   {/* Multiple CV Uploads — one per student */}
                   {studentsCount === 0 ? (
                     <p className="help-text">Enter the number of students in Step 1 to unlock CV uploads.</p>
@@ -837,7 +624,6 @@ export default function Form() {
                       )}
                       {errors.document && <div className="field-error">{errors.document}</div>}
               </div>
-              </div>
 
               {/* STEP 3 — Review & Topics */}
               <div className={`form-step ${currentStep === 3 ? "active" : ""}`} id="step-3">
@@ -870,10 +656,6 @@ export default function Form() {
                     <div className="summary-item">
                       <span>Duration:</span>
                       <span>{summary.duration}</span>
-                    </div>
-                    <div className="summary-item">
-                      <span>Students:</span>
-                      <span>{summary.students}</span>
                     </div>
                   </div>
                 </div>
@@ -961,7 +743,7 @@ export default function Form() {
                   <button
                     type="button"
                     id="submit-btn"
-                    className="nav-btn nav-btn-success"
+                    
                     disabled={submitting}
                     onClick={async () => {
                       setSubmitting(true);
@@ -969,8 +751,35 @@ export default function Form() {
                       setSubmitting(false);
 
                       if (plan) {
-                        //"/Report-Page", { state: { plan, cvFilename: uploadedFileName } }
-                        navigate("/Report-Page", { state: { plan, cvFilename: uploadedFileNames[0] || "", cvFilenames: uploadedFileNames } });
+                        // Build project data
+                        const projectData = {
+                          name: selectedTopic?.name || "Untitled Project",
+                          description: selectedTopic?.description || "No description",
+                          internshipType: form.internshipType,
+                          startDate: form.startDate,
+                          internshipDays: form.internshipDays,
+                          numberOfStudents: form.numberOfStudents,
+                          cvFilenames: uploadedFileNames,
+                        };
+
+                        // Save project locally
+                        const existingProjects = JSON.parse(localStorage.getItem("projects")) || [];
+                        localStorage.setItem("projects", JSON.stringify([...existingProjects, projectData]));
+
+                        // Navigate to report page
+                        navigate("/Report-Page", { 
+                          state: {
+                            project: {
+                              id: Date.now().toString(), // temporary unique id
+                              name: selectedTopic.name,
+                              internshipType: form.internshipType,
+                              startDate: form.startDate,
+                              endDate: "", // or calculate based on start + duration
+                              hr: { name: "—", email: "—" }, // fill if available
+                              cvFilenames: uploadedFileNames
+                            }
+                          }
+                        });
                       } else {
                         showMessage("Failed to generate project plan. Please try again.", "error");
                       }

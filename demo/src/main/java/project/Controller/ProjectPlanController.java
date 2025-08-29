@@ -9,6 +9,7 @@ import project.Dto.ProjectPlanResponse;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -24,7 +25,6 @@ public class ProjectPlanController {
         this.nameExtractionService = nameExtractionService;
     }
 
-    // ✅ changed cvFilename → List<String> cvFilenames
     @GetMapping("/generate")
     public ProjectPlanResponse generatePlan(@RequestParam String projectName,
                                             @RequestParam int internshipDays,
@@ -42,10 +42,8 @@ public class ProjectPlanController {
                     internshipDays
             );
 
-            // Start name/email extraction asynchronously for each CV
-            for (String path : cvPaths) {
-                nameExtractionService.extractAndSaveNameAndEmail(path);
-            }
+            // Start name/email extraction asynchronously for all CVs
+            nameExtractionService.extractAndSaveNameAndEmail(cvPaths);
 
             // Immediately return plan to frontend
             return planResponse;
@@ -56,6 +54,13 @@ public class ProjectPlanController {
         }
     }
 
+    // New endpoint to get multiple name/email results
+    @GetMapping("/get-multiple")
+    public Map<String, NameEmailResponse> getNamesAndEmails(@RequestParam("cvFilename") List<String> cvFilenames) {
+        return nameExtractionService.getNamesAndEmails(cvFilenames);
+    }
+
+    // Keep the single endpoint for backward compatibility
     @GetMapping("/get")
     public NameEmailResponse getNameAndEmail(@RequestParam String cvFilename) {
         return nameExtractionService.getNameAndEmail(cvFilename);

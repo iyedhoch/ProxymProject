@@ -10,8 +10,9 @@ import project.Dto.NameEmailResponse;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class NameExtractionServiceImpl implements NameExtractionService {
@@ -37,38 +38,49 @@ public class NameExtractionServiceImpl implements NameExtractionService {
 
     @Async
     @Override
-    public void extractAndSaveNameAndEmail(String cvFilePath) {
-        try {
-            String cvText = extractTextFromPDF(cvFilePath);
+    public void extractAndSaveNameAndEmail(List<String> cvFilePaths) {
+        for (String cvFilePath : cvFilePaths) {
+            try {
+                String cvText = extractTextFromPDF(cvFilePath);
 
-            String prompt = String.format("""
-                From the following CV:
-                %s
-                
-                Extract only:
-                - Full Name
-                - Email Address
-                
-                Respond in the format: NAME;EMAIL
-                """, cvText);
+                String prompt = String.format("""
+                    From the following CV:
+                    %s
+                    
+                    Extract only:
+                    - Full Name
+                    - Email Address
+                    
+                    Respond in the format: NAME;EMAIL
+                    """, cvText);
 
-            String aiResponse = ollamaService.askOllama(prompt);
+                String aiResponse = ollamaService.askOllama(prompt);
 
-            // Parse the response
-            String[] parts = aiResponse.split(";");
-            NameEmailResponse response;
-            if (parts.length == 2) {
-                response = new NameEmailResponse(parts[0].trim(), parts[1].trim());
-            } else {
-                response = new NameEmailResponse("", "");
+                // Parse the response
+                String[] parts = aiResponse.split(";");
+                NameEmailResponse response;
+                if (parts.length == 2) {
+                    response = new NameEmailResponse(parts[0].trim(), parts[1].trim());
+                } else {
+                    response = new NameEmailResponse("", "");
+                }
+
+                extractionResults.put(Path.of(cvFilePath).getFileName().toString(), response);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                extractionResults.put(Path.of(cvFilePath).getFileName().toString(), new NameEmailResponse("", ""));
             }
-
-            extractionResults.put(Path.of(cvFilePath).getFileName().toString(), response);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            extractionResults.put(Path.of(cvFilePath).getFileName().toString(), new NameEmailResponse("", ""));
         }
+    }
+
+    @Override
+    public Map<String, NameEmailResponse> getNamesAndEmails(List<String> cvFilenames) {
+        Map<String, NameEmailResponse> result = new HashMap<>();
+        for (String filename : cvFilenames) {
+            result.put(filename, extractionResults.getOrDefault(filename, new NameEmailResponse("", "")));
+        }
+        return result;
     }
 
     @Override

@@ -360,15 +360,6 @@ useEffect(()=>{
                   <span className="result-stat-value">{stats.totalWeeks}</span>
                 </div>
 
-                <div className="result-stat-box">
-                  <span className="result-stat-label">Trainees:</span>
-                  <span className="result-stat-value">
-                    Name: {nameEmail?.name || "Loading..."}
-                  </span>
-                  <span className="result-stat-value">
-                    Email: {nameEmail?.email || "Loading..."}
-                  </span>
-                </div>
               </div>
 
               {/* Project Description */}
